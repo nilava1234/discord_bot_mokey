@@ -1,9 +1,9 @@
 import os
-import socket
+import requests
 import subprocess
 import discord
 
-path = os.path.abspath(os.path.join(os.getcwd(), "bedrock-server-1.20.62.02/bedrock_server.exe"))
+path = os.path.abspath(os.path.join(os.getcwd(), "bedrock_server"))
 process = None
 
 
@@ -45,5 +45,5 @@ def status():
     
 #get the ip
 def get_ip():
-    host_name = socket.gethostname()
-    return socket.gethostbyname(host_name)
+    response = requests.get("https://api.ipify.org")
+    return response.text if response.status_code==200 else 0

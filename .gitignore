@@ -1,0 +1,5 @@
+# Ignore everything
+*
+
+# Allow Python files
+!*.py

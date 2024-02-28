@@ -84,6 +84,13 @@ async def resume(ctx, bot):
     if voice_channel.is_paused():
         voice_channel.resume()
 
+    
+
+async def resume(ctx, bot):
+    voice_channel = discord.utils.get(bot.voice_clients, guild=ctx.guild)
+    if voice_channel.is_paused():
+        voice_channel.resume()
+
 async def show_queue(ctx):
     global queue
     response = "Queue:\n"
