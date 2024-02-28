@@ -5,11 +5,14 @@ from spotipy.oauth2 import SpotifyClientCredentials
 import spotipy
 import yt_dlp as youtube_dl
 
+#Initilizng and grabing important variables
 config = configparser.ConfigParser()
 config.read('config.ini')
 SP_CLIENT_ID = config['Spotify']['CLIENT_ID']
 SP_CLIENT_SC = config['Spotify']['CLIENT_SECRET']
+sp = spotipy.Spotify(client_credentials_manager=SpotifyClientCredentials(client_id=SP_CLIENT_ID, client_secret=SP_CLIENT_SC))
 
+#Intilizing dynamic variables and settings
 queue = []
 FFMPEG_OPTIONS = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5','options': '-vn'}
 ydl_opts = {
@@ -20,24 +23,8 @@ ydl_opts = {
         'preferredquality': '192',
     }],
 }
-sp = spotipy.Spotify(client_credentials_manager=SpotifyClientCredentials(client_id=SP_CLIENT_ID, client_secret=SP_CLIENT_SC))
 
-async def play_spotify(message,link):
-    global queue
-    try:
-        if "playlist" in link:
-            results = sp.search(q=link, type='playlist')
-            # return results["tracks"]["items"]["external_urls"]
-            # return [item['external_urls']['spotify'] for item in results['tracks']['items']]
-        else:
-            results = sp.search(q=link, type='track')
-            print("Spotify Results")
-            print(results)
-            # return [] + results['tracks']['items'][0]['external_urls']['spotify']
-    except Exception as e:
-        print("Failed in play_spotify")
-        print(e)
-
+#play's the next link in queue
 async def play_next(ctx: discord.Interaction):
 
     if queue:
@@ -48,49 +35,19 @@ async def play_next(ctx: discord.Interaction):
     else:
         await ctx.channel.send(f"Queue Empty")
 
-async def play(message:discord.Interaction,link:str, bot):
-    global queue
-    channel = message.user.voice.channel
-    voice_client = discord.utils.get(message.client.voice_clients, guild=message.guild)
-    voice_channel = voice_client if voice_client is not None else await channel.connect()
-    if "spotify" in link:
-        # link = await play_spotify(message, link)
-        # with youtube_dl.YoutubeDL(ydl_opts) as ydl:
-        #         info = ydl.extract_info(link, download=False)
-        #         print(info)
-        await message.response.send_message("Sorry Spotify integration is in Progress")
-    elif "youtu" and not "playlist" in link:
-        with youtube_dl.YoutubeDL(ydl_opts) as ydl:
-            info = ydl.extract_info(link, download=False)
-            title = info["title"]
-            await message.response.send_message(f"Queued: {title}")
-            url = (info["url"], title)
-            queue.append(url)
-    else:
-        await message.response.send_message("You have provided an invalid link")
-    
-    if not voice_channel.is_playing():
-        await play_next(message)
-
-    
-async def pause(ctx, bot):
-    voice_channel = discord.utils.get(bot.voice_clients, guild=ctx.guild)
+#pauses the bot
+async def pause(ctx):
+    voice_channel = discord.utils.get(ctx.bot.voice_clients, guild=ctx.guild)
     if voice_channel.is_playing():
         voice_channel.pause()
-    
 
-async def resume(ctx, bot):
-    voice_channel = discord.utils.get(bot.voice_clients, guild=ctx.guild)
+#resumes the bot
+async def resume(ctx):
+    voice_channel = discord.utils.get(ctx.bot.voice_clients, guild=ctx.guild)
     if voice_channel.is_paused():
         voice_channel.resume()
 
-    
-
-async def resume(ctx, bot):
-    voice_channel = discord.utils.get(bot.voice_clients, guild=ctx.guild)
-    if voice_channel.is_paused():
-        voice_channel.resume()
-
+#shows the play list queue
 async def show_queue(ctx):
     global queue
     response = "Queue:\n"
@@ -102,8 +59,64 @@ async def show_queue(ctx):
     else:
         await ctx.response.send_message("Queue is empty.")
 
+#stops the bot and clears the queue
 async def clear_queue(ctx, bot):
     global queue
     queue = []
     voice_channel = discord.utils.get(bot.voice_clients, guild=ctx.guild)
     voice_channel.stop()
+
+def extract_track_id(link):
+    parts = link.split('/')
+    if len(parts) >= 5 and parts[3] == 'track':
+        return parts[4].split('?')[0]
+    else:
+        return None
+async def handle_sp_song(message, link):
+    trackID = extract_track_id(link)
+    
+    track_info  = sp.track(trackID)
+    search_query = f"{track_info['name']} {', '.join([artist['name'] for artist in track_info['artists']])} Original Audio"
+    await handle_single_song_via_query(message, search_query)
+
+async def handle_single_song_via_query(message, q):
+    with youtube_dl.YoutubeDL(ydl_opts) as ydl:
+            info = ydl.extract_info(f"ytsearch:{q}", download=False)
+            link = info["entries"][0].get("url", None)
+            url = (link, q)
+            queue.append(url)
+
+
+async def handle_single_song(message, link):
+    with youtube_dl.YoutubeDL(ydl_opts) as ydl:
+            info = ydl.extract_info(link, download=False)
+            title = info["title"]
+            await message.response.send_message(f"Queued: {title}")
+            url = (info["url"], title)
+            queue.append(url)
+
+async def play(message:discord.Interaction,link:str, bot):
+    global queue
+    try:
+        channel = message.user.voice.channel
+        voice_client = discord.utils.get(message.client.voice_clients, guild=message.guild)
+        voice_channel = voice_client if voice_client is not None else await channel.connect()
+        if "spotify" in link:
+            if "playlist" in link:
+                await message.response.send_message("Cant Handle Spotify Playlists as of this moment. Try Youtube link")
+            else:
+                await handle_sp_song(message, link)
+        elif "youtu" in link:
+            if "playlist" in link:
+                await message.response.send_message("Cant handle Youtube Playlists as of this moment. Try inividual songs")
+            else:
+                await handle_single_song(message, link)
+        else:
+            await message.response.send_message("You have provided an invalid link")
+        
+        if not voice_channel.is_playing():
+            await play_next(message)
+    except Exception as e:
+        if "NoneType" and "channel" in str(e):
+            await message.response.send_message("Must be in a voice channel to play music")
+        print(e)

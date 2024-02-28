@@ -113,12 +113,11 @@ mcstop - Stops the Minecraft Server
 mcstatus - Provides the status of the server
 mcip - Provides the IP of the server
 ========================
-~~Music
+***Music***
 play - Given a Youtube Link or a Spotify Link plays a song.
 queue - Provides a list of songs in queue
 pause - Pauses the current song
 stop - Stops the current and clears the queue
-~~
             """)
     except Exception as e:
         print("Failed in help")
