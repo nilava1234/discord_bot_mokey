@@ -52,6 +52,7 @@ async def pause(message):
 async def stop(message):
     global client
     await music_handler.clear_queue(message, client)
+    await message.response.send_message("Music Stopped and Queue Cleared")
 
 #list the current queue
 @commands.command(name="queue", description="Lists all songs in queue")

@@ -26,11 +26,12 @@ ydl_opts = {
 
 #play's the next link in queue
 async def play_next(ctx: discord.Interaction):
-
     if queue:
         url, title = queue.pop(0)
         await ctx.channel.send(f"Now Playing: {title}")
         vc = discord.utils.get(ctx.client.voice_clients, guild=ctx.guild)
+        if vc.is_playing():
+            vc.stop()
         vc.play(discord.FFmpegPCMAudio(url, **FFMPEG_OPTIONS), after=lambda e: play_next(ctx))
     else:
         await ctx.channel.send(f"Queue Empty")
@@ -77,12 +78,15 @@ async def handle_sp_song(message, link):
     
     track_info  = sp.track(trackID)
     search_query = f"{track_info['name']} {', '.join([artist['name'] for artist in track_info['artists']])} Original Audio"
+    title = f"{track_info['name']} by {', '.join([artist['name'] for artist in track_info['artists']])}"
+    await message.response.send_message(f"Queued: {title}")
     await handle_single_song_via_query(message, search_query)
 
 async def handle_single_song_via_query(message, q):
     with youtube_dl.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(f"ytsearch:{q}", download=False)
             link = info["entries"][0].get("url", None)
+            
             url = (link, q)
             queue.append(url)
 
@@ -97,26 +101,26 @@ async def handle_single_song(message, link):
 
 async def play(message:discord.Interaction,link:str, bot):
     global queue
-    try:
-        channel = message.user.voice.channel
-        voice_client = discord.utils.get(message.client.voice_clients, guild=message.guild)
-        voice_channel = voice_client if voice_client is not None else await channel.connect()
-        if "spotify" in link:
-            if "playlist" in link:
-                await message.response.send_message("Cant Handle Spotify Playlists as of this moment. Try Youtube link")
-            else:
-                await handle_sp_song(message, link)
-        elif "youtu" in link:
-            if "playlist" in link:
-                await message.response.send_message("Cant handle Youtube Playlists as of this moment. Try inividual songs")
-            else:
-                await handle_single_song(message, link)
+    # try:
+    channel = message.user.voice.channel
+    voice_client = discord.utils.get(message.client.voice_clients, guild=message.guild)
+    voice_channel = voice_client if voice_client is not None else await channel.connect()
+    if "spotify" in link:
+        if "playlist" in link:
+            await message.response.send_message("Cant Handle Spotify Playlists as of this moment. Try Youtube link")
         else:
-            await message.response.send_message("You have provided an invalid link")
-        
-        if not voice_channel.is_playing():
-            await play_next(message)
-    except Exception as e:
-        if "NoneType" and "channel" in str(e):
-            await message.response.send_message("Must be in a voice channel to play music")
-        print(e)
+            await handle_sp_song(message, link)
+    elif "youtu" in link:
+        if "playlist" in link:
+            await message.response.send_message("Cant handle Youtube Playlists as of this moment. Try inividual songs")
+        else:
+            await handle_single_song(message, link)
+    else:
+        await message.response.send_message("You have provided an invalid link")
+    
+    if not voice_channel.is_playing():
+        await play_next(message)
+    # except Exception as e:
+    #     if "NoneType" and "channel" in str(e):
+    #         await message.response.send_message("Must be in a voice channel to play music")
+    #     print(e)
