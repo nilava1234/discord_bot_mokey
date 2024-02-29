@@ -14,8 +14,8 @@ def run_server(ctx):
     global process
     if process is None:
         try:
-            command = f"gnome-terminal -- {path}"  # Redirect both stdout and stderr to the file
-            process = subprocess.Popen(command, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+            command = f"./{path}"  # Redirect both stdout and stderr to the file
+            process = subprocess.Popen(command, shell=True, check=True)
             process_id = process.pid
             print(f"Server Started PID: {process_id}")
             return True
