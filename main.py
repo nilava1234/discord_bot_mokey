@@ -3,7 +3,7 @@ import discord
 from discord import Intents
 from discord import app_commands
 from discord.ext import commands as discord_commands
-
+import asyncio
 import mcserver_handler
 import music_handler
 
@@ -30,27 +30,35 @@ async def on_ready():
 
 
 #skips current song
-@commands.command(name="next", description="Skip Current Song")
+@commands.command(name="skip", description="Skip Current Song")
 async def next(message):
+
+    await message.response.send_message("Skipping Current Song...")
     await music_handler.play_next(message)
 
 #play music via a link from spotify or youtube
 @commands.command(name="play", description="Play Music from Spotify or Youtube")
-@app_commands.describe(link = "Youtube or Spotify Link")
+@app_commands.describe(link = "Youtube, Spotify, or a Search Query")
 async def play(message, link:str):
     global client
+
+    await message.response.send_message("Queuing Up...")
     await music_handler.play(message, link, client)
 
 #pause the current song
 @commands.command(name="pause", description="Pause Current Song")
 async def pause(message):
     global client
+
+    await message.response.send_message("Paused ⏸︎")
     await music_handler.pause(message, client)
 
 #stop the current song and clear queue
 @commands.command(name="stop", description="Stops the current queue and clears it")
 async def stop(message):
     global client
+
+    await message.response.send_message("Paused ⏸︎")
     await music_handler.clear_queue(message, client)
     await message.response.send_message("Music Stopped and Queue Cleared")
 
@@ -64,7 +72,7 @@ async def queue(message):
 async def mcstart(message):
     print("Attempting to start the server...")
     await message.response.send_message("Server Booting Up...")
-    if mcserver_handler.run_server():
+    if mcserver_handler.run_server(message):
         await message.channel.send("-Server is Online-")
     else:
         await message.channel.send("Oops something went wrong. Check Server Status.")
@@ -91,11 +99,14 @@ async def mcstatus(message):
 
 #grab the ip of the current mc server
 @commands.command(name="mcip", description="Gets the IP, Port, and status of the server")
-async def mcip(message):
+async def mcip(message:discord.Interaction):
     ipv4_address = mcserver_handler.get_ip()
     print(f"ip: {ipv4_address}")
     stat = "Online" if mcserver_handler.status() else "Offline"
     await message.response.send_message(f"REMEMBER THIS IS SECURITY SENSITIVE DONT SHARE WITH PEOPLE\nip: ||{ipv4_address}|| \nport: ||19132||\nStatus: {stat}")
+    await asyncio.sleep(5)
+    edited = "REMEMBER THIS IS SECURITY SENSITIVE DONT SHARE WITH PEOPLE\nip: ||***REDACTED***|| \nport: ||***REDACTED***||\nStatus: {stat}"
+    await message.delete_original_response()
 
 #Command that lists all avalible commands
 @commands.command(name="help", description="list all commands")
