@@ -1,16 +1,12 @@
 import os
 import requests
 import subprocess
-import discord
-import threading
-import asyncio
-from functools import partial
 
 path = os.path.abspath(os.path.join(os.getcwd(), "bedrock_server"))
 process = None
 
 #run the server
-def run_server(ctx):
+def run_server():
     global process
     if process is None:
         try:

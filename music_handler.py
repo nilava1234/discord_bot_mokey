@@ -1,6 +1,5 @@
 import configparser
 import discord
-import json
 from spotipy.oauth2 import SpotifyClientCredentials
 import spotipy
 import yt_dlp as youtube_dl
