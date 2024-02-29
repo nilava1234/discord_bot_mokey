@@ -82,7 +82,7 @@ async def mcstart(message):
 async def mcstop(message):
     print("Closing the server...")
     await message.response.send_message("Server shutting down...")
-    if mcserver_handler.terminate():
+    if mcserver_handler.stop_server():
         await message.channel.send("-Server is Offline-")
     else:
         await message.channel.send("Oops something went wrong. Check Server Status")

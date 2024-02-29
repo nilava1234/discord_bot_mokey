@@ -35,11 +35,13 @@ def run_server(ctx):
     global process
     if process is None:
         try:
-            command = f"xterm -hold -e {path}"  # Open a new terminal and run the executable
+            command = f"xterm -hold -e {path} > {output_file} 2>&1"  # Redirect both stdout and stderr to the file
             process = subprocess.Popen(command, shell=True, stdin=subprocess.PIPE)
             process_id = process.pid
             print(f"Server Started PID: {process_id}")
-            threading.Thread(target=partial(send_output_to_discord, ctx)).start()
+            # Start a separate thread to read and send output to Discord
+            loop = asyncio.get_event_loop()
+            loop.run_in_executor(None, partial(send_output_to_discord, ctx))
             return True
         except subprocess.CalledProcessError as e:
             print(f"Error: {e}")
