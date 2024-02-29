@@ -14,8 +14,7 @@ def run_server(ctx):
     global process
     if process is None:
         try:
-            command = f"./{path}"  # Redirect both stdout and stderr to the file
-            process = subprocess.Popen(command, shell=True, check=True)
+            process = subprocess.Popen(path)
             process_id = process.pid
             print(f"Server Started PID: {process_id}")
             return True
