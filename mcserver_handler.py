@@ -8,40 +8,16 @@ from functools import partial
 
 path = os.path.abspath(os.path.join(os.getcwd(), "bedrock_server"))
 process = None
-stop_event = threading.Event()
-output_file = "server_output.txt"
-
-async def send_output_to_discord(ctx):
-    global process
-    messages = []  # Keep track of messages sent to the channel
-
-    while process is not None:
-        with open(output_file, "r") as file:
-            lines = file.readlines()
-            if lines:
-                lines = lines[-10:]  # Get the last 10 lines
-                output = "".join(lines)
-                if messages:
-                    # Update the last sent message with new output
-                    await messages[-1].edit(content=f"```\n{output}\n```")
-                else:
-                    # Send a new message with the output
-                    message = await ctx.channel.send(f"```\n{output}\n```")
-                    messages.append(message)
-        await asyncio.sleep(5)  # Adjust the sleep duration as needed
 
 #run the server
 def run_server(ctx):
     global process
     if process is None:
         try:
-            command = f"xterm -hold -e {path} > {output_file} 2>&1"  # Redirect both stdout and stderr to the file
+            command = f"xterm -hold -e {path}"  # Redirect both stdout and stderr to the file
             process = subprocess.Popen(command, shell=True, stdin=subprocess.PIPE)
             process_id = process.pid
             print(f"Server Started PID: {process_id}")
-            # Start a separate thread to read and send output to Discord
-            loop = asyncio.get_event_loop()
-            loop.run_in_executor(None, partial(send_output_to_discord, ctx))
             return True
         except subprocess.CalledProcessError as e:
             print(f"Error: {e}")
