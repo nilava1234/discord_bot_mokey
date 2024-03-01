@@ -72,7 +72,7 @@ async def queue(message):
 async def mcstart(message):
     print("Attempting to start the server...")
     await message.response.send_message("Server Booting Up...")
-    if mcserver_handler.run_server(message):
+    if mcserver_handler.run_server():
         await message.channel.send("-Server is Online-")
     else:
         await message.channel.send("Oops something went wrong. Check Server Status.")
@@ -104,7 +104,7 @@ async def mcip(message:discord.Interaction):
     print(f"ip: {ipv4_address}")
     stat = "Online" if mcserver_handler.status() else "Offline"
     await message.response.send_message(f"REMEMBER THIS IS SECURITY SENSITIVE DONT SHARE WITH PEOPLE\nip: ||{ipv4_address}|| \nport: ||19132||\nStatus: {stat}")
-    await asyncio.sleep(5)
+    await asyncio.sleep(30)
     edited = "REMEMBER THIS IS SECURITY SENSITIVE DONT SHARE WITH PEOPLE\nip: ||***REDACTED***|| \nport: ||***REDACTED***||\nStatus: {stat}"
     await message.delete_original_response()
 
