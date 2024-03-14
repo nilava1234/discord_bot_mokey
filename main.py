@@ -58,9 +58,9 @@ async def pause(message):
 async def stop(message):
     global client
 
-    await message.response.send_message("Clearing Queue and Disconnecting...")
+    await message.response.send_message("Clearing Queue...")
     await music_handler.clear_queue(message, client)
-    await message.response.send_message("Music Stopped and Queue Cleared")
+    await message.channel.send("Music Stopped and Queue Cleared")
 
 #list the current queue
 @commands.command(name="queue", description="Lists all songs in queue")
@@ -80,37 +80,48 @@ async def mcstart(message):
 #stop the mc server
 @commands.command(name="mcstop", description="Stops the MC:BE Server")
 async def mcstop(message):
-    if(not mcserver_handler.booting):
+    try:
+        if(not mcserver_handler.booting):
     
-        print("Closing the server...")
-        await message.response.send_message("Server shutting down...")
-        if mcserver_handler.stop_server():
-            await message.channel.send("-Server is Offline-")
+            print("Closing the server...")
+            await message.response.send_message("Server shutting down...")
+            if mcserver_handler.stop_server():
+                await message.channel.send("-Server is Offline-")
+            else:
+                await message.channel.send("Oops something went wrong. Check Server Status")
         else:
-            await message.channel.send("Oops something went wrong. Check Server Status")
-    else:
-        await message.response.send_message("Oop. looks like a server is currently booting up, please wait")
+            await message.response.send_message("Oop. looks like a server is currently booting up, please wait")
+    except Exception as e:
+        print("Failed in mcstop: {e}")
+    
 
 #get the status of the mc server
 @commands.command(name="mcstatus", description="Gets the status of the MC:BE Server")
 async def mcstatus(message):
-    print("Grabing server status")
-    stat = mcserver_handler.status()
-    if stat:
-        await message.response.send_message("Server: Active")
-    else:
-        await message.response.send_message("Server: Offline")
+    try:
+        print("Grabing server status")
+        stat = mcserver_handler.status()
+        if stat:
+            await message.response.send_message("Server: Active")
+        else:
+            await message.response.send_message("Server: Offline")
+    except Exception as e:
+        print("Failed in mcstatus: {e}")
+
 
 #grab the ip of the current mc server
 @commands.command(name="mcip", description="Gets the IP, Port, and status of the server")
 async def mcip(message:discord.Interaction):
-    ipv4_address = mcserver_handler.get_ip()
-    print(f"ip: {ipv4_address}")
-    stat = "Online" if mcserver_handler.status() else "Offline"
-    await message.response.send_message(f"REMEMBER THIS IS SECURITY SENSITIVE DONT SHARE WITH PEOPLE\nip: ||{ipv4_address}|| \nport: ||19132||\nStatus: {stat}")
-    await asyncio.sleep(30)
-    edited = "REMEMBER THIS IS SECURITY SENSITIVE DONT SHARE WITH PEOPLE\nip: ||***REDACTED***|| \nport: ||***REDACTED***||\nStatus: {stat}"
-    await message.delete_original_response()
+    try:
+        ipv4_address = mcserver_handler.get_ip()
+        print(f"ip: {ipv4_address}")
+        stat = "Online" if mcserver_handler.status() else "Offline"
+        await message.response.send_message(f"REMEMBER THIS IS SECURITY SENSITIVE DONT SHARE WITH PEOPLE\nip: ||{ipv4_address}|| \nport: ||19132||\nStatus: {stat}")
+        await asyncio.sleep(30)
+        edited = "REMEMBER THIS IS SECURITY SENSITIVE DONT SHARE WITH PEOPLE\nip: ||***REDACTED***|| \nport: ||***REDACTED***||\nStatus: {stat}"
+        await message.delete_original_response()
+    except Exception as e:
+        print("Failed in MCIP: {e}")
 
 #Command that lists all avalible commands
 @commands.command(name="help", description="list all commands")
@@ -133,6 +144,7 @@ mcip - Provides the IP of the server
 play - Given a Youtube Link or a Spotify Link plays a song.
 queue - Provides a list of songs in queue
 pause - Pauses the current song
+resume - Resumes the current paused song
 stop - Stops the current and clears the queue
             """)
     except Exception as e:
