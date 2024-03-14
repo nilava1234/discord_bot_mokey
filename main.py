@@ -80,12 +80,16 @@ async def mcstart(message):
 #stop the mc server
 @commands.command(name="mcstop", description="Stops the MC:BE Server")
 async def mcstop(message):
-    print("Closing the server...")
-    await message.response.send_message("Server shutting down...")
-    if mcserver_handler.stop_server():
-        await message.channel.send("-Server is Offline-")
+    if(not mcserver_handler.booting):
+    
+        print("Closing the server...")
+        await message.response.send_message("Server shutting down...")
+        if mcserver_handler.stop_server():
+            await message.channel.send("-Server is Offline-")
+        else:
+            await message.channel.send("Oops something went wrong. Check Server Status")
     else:
-        await message.channel.send("Oops something went wrong. Check Server Status")
+        await message.response.send_message("Oop. looks like a server is currently booting up, please wait")
 
 #get the status of the mc server
 @commands.command(name="mcstatus", description="Gets the status of the MC:BE Server")

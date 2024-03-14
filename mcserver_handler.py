@@ -3,18 +3,23 @@ import requests
 import subprocess
 import time
 
-path = os.path.abspath(os.path.join(os.getcwd(), "bedrock_server"))
+path = os.path.abspath(os.path.join(os.getcwd(), "start.sh"))
 process = None
+booting = 0
 
 # Run the server
 def run_server():
     global process
+    global booting
     if process is None:
+        booting = 0
         try:
-            process = subprocess.Popen(path, stdin=subprocess.PIPE)
+            booting = 1
+            process = subprocess.Popen(path, shell=True, stdin=subprocess.PIPE)
             process_id = process.pid
             print(f"Server Started PID: {process_id}")
-            time.sleep(60)  # Wait for 60 seconds
+            time.sleep(80)  # Wait for 60 seconds
+            booting = 0
             return True
         except subprocess.CalledProcessError as e:
             print(f"Error: {e}")
