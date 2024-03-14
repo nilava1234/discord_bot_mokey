@@ -37,6 +37,7 @@ def stop_server():
             process.stdin.flush()
             process.wait()  # Wait for the subprocess to finish
             process = None
+            time.sleep(30)
             return True
         except Exception as e:
             print(f"Error stopping server: {e}")
