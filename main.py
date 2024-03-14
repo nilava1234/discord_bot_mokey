@@ -58,7 +58,7 @@ async def pause(message):
 async def stop(message):
     global client
 
-    await message.response.send_message("Paused ⏸︎")
+    await message.response.send_message("Clearing Queue and Disconnecting...")
     await music_handler.clear_queue(message, client)
     await message.response.send_message("Music Stopped and Queue Cleared")
 
