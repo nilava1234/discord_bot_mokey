@@ -58,7 +58,7 @@ async def resume(ctx):
 #shows the play list queue
 async def show_queue(ctx):
     global queue
-    response = "Queue:\n"
+    response = ""
     if queue:
         
         for i, (url, title) in enumerate(queue, start=1):

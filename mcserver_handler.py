@@ -1,14 +1,14 @@
 import os
 import requests
 import subprocess
-import time
+import asyncio
 
 path = os.path.abspath(os.path.join(os.getcwd(), "start.sh"))
 process = None
 booting = 0
 
 # Run the server
-def run_server():
+async def run_server():
     global process
     global booting
     if process is None:
@@ -17,8 +17,8 @@ def run_server():
             booting = 1
             process = subprocess.Popen(path, shell=True, stdin=subprocess.PIPE)
             process_id = process.pid
+            await asyncio.sleep(80)
             print(f"Server Started PID: {process_id}")
-            time.sleep(80)  # Wait for 60 seconds
             booting = 0
             return True
         except subprocess.CalledProcessError as e:
@@ -28,16 +28,16 @@ def run_server():
         return False
 
 # Terminate the server  
-def stop_server():
+async def stop_server():
     global process
     if process is not None:
         try:
             # Send "stop" command to the server
+            await asyncio.sleep(30)
             process.stdin.write(b"stop\n")
             process.stdin.flush()
             process.wait()  # Wait for the subprocess to finish
             process = None
-            time.sleep(30)
             return True
         except Exception as e:
             print(f"Error stopping server: {e}")

@@ -65,6 +65,7 @@ async def stop(message):
 #list the current queue
 @commands.command(name="queue", description="Lists all songs in queue")
 async def queue(message):
+    message.response.send_message("Queue:")
     await music_handler.show_queue(message)
 
 #start the mc server
@@ -72,7 +73,7 @@ async def queue(message):
 async def mcstart(message):
     print("Attempting to start the server...")
     await message.response.send_message("Server Booting Up...")
-    if mcserver_handler.run_server():
+    if await mcserver_handler.run_server():
         await message.channel.send("-Server is Online-")
     else:
         await message.channel.send("Oops something went wrong. Check Server Status.")
@@ -85,7 +86,7 @@ async def mcstop(message):
     
             print("Closing the server...")
             await message.response.send_message("Server shutting down...")
-            if mcserver_handler.stop_server():
+            if await mcserver_handler.stop_server():
                 await message.channel.send("-Server is Offline-")
             else:
                 await message.channel.send("Oops something went wrong. Check Server Status")
@@ -118,7 +119,6 @@ async def mcip(message:discord.Interaction):
         stat = "Online" if mcserver_handler.status() else "Offline"
         await message.response.send_message(f"REMEMBER THIS IS SECURITY SENSITIVE DONT SHARE WITH PEOPLE\nip: ||{ipv4_address}|| \nport: ||19132||\nStatus: {stat}")
         await asyncio.sleep(30)
-        edited = "REMEMBER THIS IS SECURITY SENSITIVE DONT SHARE WITH PEOPLE\nip: ||***REDACTED***|| \nport: ||***REDACTED***||\nStatus: {stat}"
         await message.delete_original_response()
     except Exception as e:
         print("Failed in MCIP: {e}")
@@ -134,7 +134,7 @@ Here are a list of commands:
 ***General:***
 help - List of out all the commands I know
 ========================
-***Minecraft Server Related Commands***
+***Minecraft Server Related Commands (1.20.4)***
 mcstart - Starts the Minecraft Bedrock Server
 mcstop - Stops the Minecraft Server
 mcstatus - Provides the status of the server
