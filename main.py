@@ -68,6 +68,11 @@ async def queue(message):
     message.response.send_message("Queue:")
     await music_handler.show_queue(message)
 
+#reboot the mc server
+@commands.command(name="mcreboot", description="Reboots the server")
+async def mcreboot(message):
+    await mcstop(message)
+    await mcstart(message)
 #start the mc server
 @commands.command(name="mcstart", description="Starts the MC:BE Server")
 async def mcstart(message):
