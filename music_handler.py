@@ -3,6 +3,7 @@ import discord
 from spotipy.oauth2 import SpotifyClientCredentials
 import spotipy
 import yt_dlp as youtube_dl
+import asyncio
 
 #Initilizng and grabing important variables
 config = configparser.ConfigParser()
@@ -109,12 +110,20 @@ async def handle_single_song(message, link):
             url = (info["url"], title)
             queue.append(url)
 
+async def check_idle(voice_client):
+    while voice_client.is_connected():
+        await asyncio.sleep(5)
+        if not voice_client.is_playing() and not voice_client.is_paused():
+            await voice_client.disconnect()
+            break
+
 async def play(message:discord.Interaction,link:str, bot):
     global queue
     # try:
     channel = message.user.voice.channel
     voice_client = discord.utils.get(message.client.voice_clients, guild=message.guild)
     voice_channel = voice_client if voice_client is not None else await channel.connect()
+    check_idle(voice_client)
     if "spotify" in link:
         if "playlist" in link:
             await message.channel.send("Cant Handle Spotify Playlists as of this moment. Try Youtube link")

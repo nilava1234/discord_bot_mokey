@@ -6,6 +6,7 @@ from discord.ext import commands as discord_commands
 import asyncio
 import mcserver_handler
 import music_handler
+import mtg_handler
 
 
 
@@ -16,7 +17,9 @@ TOKEN = config['Bot']['TOKEN']
 intents = Intents.all()
 client = discord_commands.Bot(command_prefix='!', intents=intents)
 commands = client.tree
-
+'''
+    This part of the code is simple set-ups for the discord bot. Not much to it
+'''
 #ON_READY method that runs when bot is started
 @client.event
 async def on_ready():
@@ -27,7 +30,19 @@ async def on_ready():
     except Exception as e:
         print("Failed in on_ready")
         print(e)
+@commands.command(name="mtg", description="Provide a name")
+async def mtg(ctx, query:str):
+    await mtg_handler.mtg_main(ctx, query)
 
+@commands.command(name='leave')
+async def leave(ctx):
+    if ctx.voice_client:
+        await ctx.voice_client.disconnect()
+    else:
+        await ctx.send("I'm not in a voice channel.")
+'''
+    All proceding methods are for the music player functions. The names should be self explanitory
+'''
 
 #skips current song
 @commands.command(name="skip", description="Skip Current Song")
@@ -73,6 +88,12 @@ async def queue(message):
 async def mcreboot(message):
     await mcstop(message)
     await mcstart(message)
+'''
+    The code that handles the minecraft server.
+    
+    This code cannot be ran by any computer other than the minecraft server
+    host computer. But computers set-up to properly to run such code may.
+'''
 #start the mc server
 @commands.command(name="mcstart", description="Starts the MC:BE Server")
 async def mcstart(message):
