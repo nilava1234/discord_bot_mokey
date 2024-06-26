@@ -25,8 +25,11 @@ def fetch_cards_by_name(name):
                 "disc": card.text,
                 "image_url": card.image_url,
                 "price": data['prices']['usd'] if data['prices']['usd'] else "-00.00",
-                "legal": 'commander' in card.legalities and card[0].legalities['commander'] == 'legal'
+                "legal": any(legality['format'] == 'Commander' and legality['legality'] == 'Legal' for legality in card.legalities)
             }
+
+
+
     except Exception as e:
         print(f"Exception Thrown   \/ \n{e}")
         url = f"https://api.scryfall.com/cards/named?fuzzy={name}"
