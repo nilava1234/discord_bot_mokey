@@ -8,7 +8,7 @@ import mcserver_handler
 import music_handler
 import mtg_handler
 
-
+#test
 
 #Intilziing and setting up bot via token and intents
 config = configparser.ConfigParser()
