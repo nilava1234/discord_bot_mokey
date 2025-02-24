@@ -1,5 +1,11 @@
-# Ignore everything
+# Ignore all files by default
 *
 
-# Allow Python files
+# Allow Python files in the current directory
 !*.py
+
+# Ignore all directories to prevent subdirectories from being included
+*/
+
+# Allow explicitly tracked files (if needed)
+!.gitignore

@@ -140,7 +140,7 @@ async def mcstatus(message):
 @commands.command(name="mcip", description="Gets the IP, Port, and status of the server")
 async def mcip(message:discord.Interaction):
     try:
-        ipv4_address = mcserver_handler.get_ip()
+        ipv4_address = "nilavashub.duckdns.org"
         print(f"ip: {ipv4_address}")
         stat = "Online" if mcserver_handler.status() else "Offline"
         await message.response.send_message(f"REMEMBER THIS IS SECURITY SENSITIVE DONT SHARE WITH PEOPLE\nip: ||{ipv4_address}|| \nport: ||19132||\nStatus: {stat}")
