@@ -25,54 +25,54 @@ ydl_opts = {
 }
 
 #play's the next link in queue
-async def play_next(ctx: discord.Interaction):
+async def play_next(message: discord.Interaction):
     global queue
     if queue:
         url, title = queue.pop(0)
-        await ctx.channel.send(f"Now Playing: {title}")
-        vc = discord.utils.get(ctx.client.voice_clients, guild=ctx.guild)
+        await message.channel.send(f"Now Playing: {title}")
+        vc = discord.utils.get(message.client.voice_clients, guild=message.guild)
         def after_play(error):
             # This function will be called after the audio has finished playing
             if error:
                 print(f"Error in after_play: {error}")
             # Call play_next again for the next song
-            ctx.client.loop.create_task(play_next(ctx))
+            message.client.loop.create_task(play_next(message))
 
         # Stop and play the next song
         vc.stop()
         vc.play(discord.FFmpegPCMAudio(url, **FFMPEG_OPTIONS), after=after_play)
     else:
-        await ctx.channel.send(f"Queue Empty")
+        await message.channel.send(f"Queue Empty")
 
 #pauses the bot
-async def pause(ctx):
-    voice_channel = discord.utils.get(ctx.bot.voice_clients, guild=ctx.guild)
+async def pause(message):
+    voice_channel = discord.utils.get(message.bot.voice_clients, guild=message.guild)
     if voice_channel.is_playing():
         voice_channel.pause()
 
 #resumes the bot
-async def resume(ctx):
-    voice_channel = discord.utils.get(ctx.bot.voice_clients, guild=ctx.guild)
+async def resume(message):
+    voice_channel = discord.utils.get(message.bot.voice_clients, guild=message.guild)
     if voice_channel.is_paused():
         voice_channel.resume()
 
 #shows the play list queue
-async def show_queue(ctx):
+async def show_queue(message):
     global queue
     response = ""
     if queue:
         
         for i, (url, title) in enumerate(queue, start=1):
             response += f"{i}) {title}\n"
-        await ctx.channel.send(response)
+        await message.channel.send(response)
     else:
-        await ctx.channel.send("Queue is empty.")
+        await message.channel.send("Queue is empty.")
 
 #stops the bot and clears the queue
-async def clear_queue(ctx, bot):
+async def clear_queue(message, bot):
     global queue
     queue = []
-    voice_channel = discord.utils.get(bot.voice_clients, guild=ctx.guild)
+    voice_channel = discord.utils.get(bot.voice_clients, guild=message.guild)
     voice_channel.stop()
 
 def extract_track_id(link):
@@ -82,34 +82,116 @@ def extract_track_id(link):
     else:
         return None
 
-async def handle_sp_song(message, link):
-    trackID = extract_track_id(link)
-    track_info  = sp.track(trackID)
-    search_query = f"{track_info['name']} {', '.join([artist['name'] for artist in track_info['artists']])} Audio"
-    title = f"{track_info['name']} by {', '.join([artist['name'] for artist in track_info['artists']])}"
-    await message.channel.send(f"Queued: {title}")
-    await handle_single_song_via_query(message, search_query)
 
-async def handle_single_song_via_query(message, q):
+async def handle_single_song_via_query(message:discord.interactions, query:str):
     global queue
-    with youtube_dl.YoutubeDL(ydl_opts) as ydl:
-            info = ydl.extract_info(f"ytsearch:{q}", download=False)
-            title = info.get('title', 'Unknown Title')
-            link = info["entries"][0].get("url", None)
-            await message.channel.send(f"Queued: {title}")
-            url = (link, q)
-            queue.append(url)
+    try:
+        with youtube_dl.YoutubeDL(ydl_opts) as ydl:
+            search_result = ydl.extract_info(f"ytsearchmusic:{query}", download=False)
+            if not search_result or "entries" not in search_result or not search_result["entries"]:
+                await message.channel.send("No results found for the query.")
+                return
+            
+            video_info = search_result["entries"][0]
+            title = video_info.get("title", "Unknown Title")
+            video_url = video_info.get("url", None)
+
+            if not video_url:
+                await message.channel.send("Failed to retrieve a valid URL for the song.")
+                return
+            queue.append((video_url, title))
+            await message.channel.send(f"🎵 Queued: {title}")
+    except Exception as e:
+        await message.channel.send("An error occurred while searching for the song.")
+        print(f"yt-dlp Error: {e}")
 
 
 async def handle_single_song(message, link):
     global queue
-    with youtube_dl.YoutubeDL(ydl_opts) as ydl:
-            info = ydl.extract_info(link, download=False)
-            title = info["title"]
-            await message.channel.send(f"Queued: {title}")
-            url = (info["url"], title)
-            queue.append(url)
 
+    try:
+        with youtube_dl.YoutubeDL(ydl_opts) as ydl:
+            video_info = ydl.extract_info(link, download=False)
+
+            # Ensure the result is valid
+            if not video_info or "url" not in video_info:
+                await message.channel.send("Failed to retrieve a valid URL for the song.")
+                return
+
+            title = video_info.get("title", "Unknown Title")
+            video_url = video_info["url"]
+
+            # Add song to queue
+            queue.append((video_url, title))
+            await message.channel.send(f"🎵 Queued: {title}")
+
+    except Exception as e:
+        await message.channel.send("An error occurred while processing the song.")
+        print(f"yt-dlp Error: {e}")
+
+#METHOD SPOTIFY_SONG    ======Helpers======         ===============================================
+async def handle_spotify_song(message, link):
+    try:
+        track_id = link.split("/track/")[1].split("?")[0]
+    except IndexError:
+        await message.channel.send("Invalid Spotify track link.")
+        return
+    track_name = track_info["name"]
+    artists = ", ".join([artist["name"] for artist in track_info["artists"]])
+    search_query = f"{track_name} {artists} Audio"
+    try:
+        track_info = sp.track(track_id)
+    except Exception as e:
+        await message.channel.send("Error fetching track details from Spotify.")
+        print(f"Spotify API Error: {e}")
+        return
+    title = f"{track_name} by {artists}"
+    
+    await message.channel.send(f"🎶 Queued: {title}")
+    await handle_single_song_via_query(message, search_query)
+
+#METHOD SPOTIFY_PLAYLIST    ======Helpers======         ===============================================
+async def handle_spotify_playlist(message:discord.interactions, link:str):
+    playlist_id = link.split("/playlist/")[1].split("?")[0]
+    playlist_tracks = sp.playlist_tracks(playlist_id)
+
+    for item in playlist_tracks['items']:
+        track = item['track']
+        search_query = f"{track['name']} {', '.join([artist['name'] for artist in track['artists']])} Audio"
+        title = f"{track['name']} by {', '.join([artist['name'] for artist in track['artists']])}"
+
+        await message.channel.send(f"Queued: {title}")
+        await handle_single_song_via_query(message, search_query)
+
+#METHOD YOUTUBE_PLAYLIST    ======Helpers======         ===============================================   
+async def handle_youtube_playlist(message, playlist_link):
+    
+    global queue
+
+    try:
+        with youtube_dl.YoutubeDL(ydl_opts) as ydl:
+            playlist_info = ydl.extract_info(playlist_link, download=False)
+
+            if not playlist_info or "entries" not in playlist_info or not playlist_info["entries"]:
+                await message.channel.send("No videos found in this playlist.")
+                return
+
+            for video in playlist_info["entries"]:
+                if not video or "url" not in video:
+                    continue 
+
+                title = video.get("title", "Unknown Title")
+                video_url = video["url"]
+
+                queue.append((video_url, title))
+
+            await message.channel.send(f"📃 Queued {len(playlist_info['entries'])} songs from the playlist!")
+
+    except Exception as e:
+        await message.channel.send("An error occurred while processing the YouTube playlist.")
+        print(f"yt-dlp Error: {e}")
+
+#METHOD PLAY    ======Helpers======     (check_idle)    ===============================================
 async def check_idle(voice_client):
     while voice_client.is_connected():
         await asyncio.sleep(5)
@@ -117,18 +199,26 @@ async def check_idle(voice_client):
             await voice_client.disconnect()
             break
 
-async def play(message:discord.Interaction,link:str, bot):
+async def play(message:discord.Interaction, link:str):
+    #Global Declaration
+    #Queue: Required due to song queue
     global queue
-    # try:
-    channel = message.user.voice.channel
-    voice_client = discord.utils.get(message.client.voice_clients, guild=message.guild)
-    voice_channel = voice_client if voice_client is not None else await channel.connect()
-    check_idle(voice_client)
+    if not message.user.voice:
+        await message.channel.send("I dont see you in a voice channel, join one to play music")
+        return
+
+    #checking if user is in a VC
+    voice_client = discord.utils.get(message.client.voice_clients, guild = message.guild)
+    if voice_client is None:
+        voice_client = await message.user.voice.channel.connect()
+
+    #idle check
+    asyncio.create_task(check_idle(voice_client))
     if "spotify" in link:
         if "playlist" in link:
-            await message.channel.send("Cant Handle Spotify Playlists as of this moment. Try Youtube link")
+            await handle_spotify_playlist(message, link)
         else:
-            await handle_sp_song(message, link)
+            await handle_spotify_song(message, link)
     elif "youtu" in link:
         if "playlist" in link:
             await message.channel.send("Cant handle Youtube Playlists as of this moment. Try inividual songs")
@@ -136,10 +226,6 @@ async def play(message:discord.Interaction,link:str, bot):
             await handle_single_song(message, link)
     else:
         await handle_single_song_via_query(message, f"{link} Audio")
-    
-    if not voice_channel.is_playing():
+    #next song
+    if not voice_client.is_playing():
         await play_next(message)
-    # except Exception as e:
-    #     if "NoneType" and "channel" in str(e):
-    #         await message.channel.send("Must be in a voice channel to play music")
-    #     print(e)
