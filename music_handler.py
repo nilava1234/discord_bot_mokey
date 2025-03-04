@@ -29,7 +29,8 @@ FFMPEG_OPTIONS = {
 
 # ✅ yt-dlp Settings for Extracting High-Quality YouTube Music Audio
 ydl_opts = {
-    'silent': True,  # Prevents yt-dlp from printing output to console
+    'cookies-from-browser': 'firefox',
+    'quiet': True,  # Prevents yt-dlp from printing output to console
     'format': 'bestaudio/best',  # Ensures the highest quality audio is used
     'default_search': 'ytsearch',  # Uses YouTube search if a direct link is not provided
     'source_address': '0.0.0.0',  # Avoids IP bans by binding to all available network interfaces
@@ -44,6 +45,7 @@ ydl_opts = {
     'ignoreerrors': True,  # Prevents yt-dlp from stopping on minor errors
     'nocheckcertificate': True,  # Bypasses SSL certificate verification to avoid connection issues
     'skip_download': True,  # Ensures yt-dlp only fetches URLs, without downloading files
+    'cookiefile': 'youtube_cookies.txt'
 }
 
 
