@@ -53,7 +53,7 @@ async def next(message):
             voice_client.stop()
     except Exception as e:
         print(e)
-        await message.response.send_message("⚠️ An error has occurred.")
+        await message.channel.send("⚠️ An error has occurred.")
 
 @commands.command(name="play", description="Play Music from Spotify or Youtube")
 @app_commands.describe(link="Youtube, Spotify, or a Search Query")
@@ -63,7 +63,7 @@ async def play(message, link: str):
         await music_handler.play(message, link)
     except Exception as e:
         print(e)
-        await message.response.send_message("⚠️ An error has occurred.")
+        await message.channel.send("⚠️ An error has occurred.")
 
 @commands.command(name="pause", description="Pause Current Song")
 async def pause(message):
@@ -72,7 +72,7 @@ async def pause(message):
         await music_handler.pause(message, client)
     except Exception as e:
         print(e)
-        await message.response.send_message("⚠️ An error has occurred.")
+        await message.channel.send("⚠️ An error has occurred.")
 
 @commands.command(name="stop", description="Stops the current queue and clears it")
 async def stop(message):
@@ -82,7 +82,7 @@ async def stop(message):
         await message.channel.send("Music Stopped and Queue Cleared")
     except Exception as e:
         print(e)
-        await message.response.send_message("⚠️ An error has occurred.")
+        await message.channel.send("⚠️ An error has occurred.")
 
 @commands.command(name="queue", description="Lists all songs in queue")
 async def queue(message):
@@ -91,7 +91,7 @@ async def queue(message):
         await music_handler.show_queue(message)
     except Exception as e:
         print(e)
-        await message.response.send_message("⚠️ An error has occurred.")
+        await message.channel.send("⚠️ An error has occurred.")
 
 @commands.command(name="mcreboot", description="Reboots the server")
 async def mcreboot(message):
@@ -100,7 +100,7 @@ async def mcreboot(message):
         await mcstart(message)
     except Exception as e:
         print(e)
-        await message.response.send_message("⚠️ An error has occurred.")
+        await message.channel.send("⚠️ An error has occurred.")
 
 @commands.command(name="mcstart", description="Starts the MC:BE Server")
 async def mcstart(message):
@@ -113,7 +113,7 @@ async def mcstart(message):
             await message.channel.send("Oops something went wrong. Check Server Status.")
     except Exception as e:
         print(e)
-        await message.response.send_message("⚠️ An error has occurred.")
+        await message.channel.send("⚠️ An error has occurred.")
 
 @commands.command(name="mcstop", description="Stops the MC:BE Server")
 async def mcstop(message):
@@ -129,7 +129,7 @@ async def mcstop(message):
             await message.response.send_message("Oops, looks like a server is currently booting up, please wait.")
     except Exception as e:
         print(e)
-        await message.response.send_message("⚠️ An error has occurred.")
+        await message.channel.send("⚠️ An error has occurred.")
 
 @commands.command(name="mcstatus", description="Gets the status of the MC:BE Server")
 async def mcstatus(message):
@@ -142,7 +142,7 @@ async def mcstatus(message):
             await message.response.send_message("Server: Offline")
     except Exception as e:
         print(e)
-        await message.response.send_message("⚠️ An error has occurred.")
+        await message.channel.send("⚠️ An error has occurred.")
 
 @commands.command(name="mcip", description="Gets the IP, Port, and status of the server")
 async def mcip(message: discord.Interaction):
@@ -158,7 +158,7 @@ async def mcip(message: discord.Interaction):
         await message.delete_original_response()
     except Exception as e:
         print(e)
-        await message.response.send_message("⚠️ An error has occurred.")
+        await message.channel.send("⚠️ An error has occurred.")
 
 @commands.command(name="help", description="List all commands")
 async def help(message):
@@ -185,6 +185,6 @@ stop - Stops the current and clears the queue
 """)
     except Exception as e:
         print(e)
-        await message.response.send_message("⚠️ An error has occurred.")
+        await message.channel.send("⚠️ An error has occurred.")
 
 client.run(TOKEN)
