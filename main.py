@@ -69,7 +69,7 @@ async def play(message, link: str):
 async def pause(message):
     try:
         await message.response.send_message("Paused ⏸︎")
-        await music_handler.pause(message, client)
+        await music_handler.pause(message)
     except Exception as e:
         print(e)
         await message.channel.send("⚠️ An error has occurred.")
@@ -103,11 +103,13 @@ async def mcreboot(message):
         await message.channel.send("⚠️ An error has occurred.")
 
 @commands.command(name="mcstart", description="Starts the MC:BE Server")
-async def mcstart(message):
+@app_commands.describe(version="vanilla, atm10")
+async def mcstart(message, version:str = "vanilla"):
+    version = version.lower()
     try:
         print("Attempting to start the server...")
         await message.response.send_message("Server Booting Up...")
-        if await mcserver_handler.run_server():
+        if await mcserver_handler.run_server(version):
             await message.channel.send("-Server is Online-")
         else:
             await message.channel.send("Oops something went wrong. Check Server Status.")

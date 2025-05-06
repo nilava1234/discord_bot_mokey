@@ -3,24 +3,41 @@ import requests
 import subprocess
 import asyncio
 
-path = os.path.abspath(os.path.join(os.getcwd(), "start.sh"))
+defualt_path = os.path.abspath(os.getcwd())
+vanilla_path = os.path.abspath(os.path.join(os.getcwd(), "vanilla_minecraft/start.sh"))
+atm10_path = os.path.abspath(os.path.join(os.getcwd(), "atm10/run.sh"))
 process = None
 booting = 0
 
 # Run the server
-async def run_server():
+async def run_server(version:str ):
     global process
     global booting
     if process is None:
         booting = 0
         try:
-            booting = 1
-            process = subprocess.Popen(path, shell=True, stdin=subprocess.PIPE)
-            process_id = process.pid
-            await asyncio.sleep(80)
-            print(f"Server Started PID: {process_id}")
-            booting = 0
-            return True
+            if version == "atm10":
+                booting = 1
+                cwd = os.path.dirname(atm10_path)
+                process = subprocess.Popen(atm10_path, shell=True, stdin=subprocess.PIPE, cwd=cwd)
+                process_id = process.pid
+                await asyncio.sleep(420)
+                print(f"Server Started PID: {process_id}")
+                booting = 0
+                cwd = os.path.dirname(defualt_path)
+                return True
+            if version == "vanilla":
+                booting = 1
+                cwd = os.path.dirname(vanilla_path)
+                process = subprocess.Popen(vanilla_path, shell=True, stdin=subprocess.PIPE, cwd=cwd)
+                process_id = process.pid
+                await asyncio.sleep(80)
+                print(f"Server Started PID: {process_id}")
+                booting = 0
+                cwd = os.path.dirname(defualt_path)
+                return True
+            else:
+                return False
         except subprocess.CalledProcessError as e:
             print(f"Error: {e}")
             return False
@@ -34,9 +51,17 @@ async def stop_server():
         try:
             # Send "stop" command to the server
             await asyncio.sleep(30)
-            process.stdin.write(b"stop\n")
-            process.stdin.flush()
-            process.wait()  # Wait for the subprocess to finish
+            if process.poll() is None:
+                try:
+                    process.stdin.write(b"stop\n")
+                    process.stdin.flush()
+                except BrokenPipeError:
+                    process = None
+                    return False
+                try:
+                    process.wait(timeout=60)  # Wait for the subprocess to finish
+                except subprocess.TimeoutExpired:
+                    process.kill
             process = None
             return True
         except Exception as e:
