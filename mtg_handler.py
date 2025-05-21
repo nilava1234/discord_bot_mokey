@@ -1,9 +1,4 @@
-from mtgsdk import Card
-from mtgsdk import Set
-from mtgsdk import Type
-from mtgsdk import Supertype
-from mtgsdk import Subtype
-from mtgsdk import Changelog
+from mtgsdk import Card, Set, Type, Supertype, Subtype, Changelog
 from PIL import Image
 from io import BytesIO
 import requests
