@@ -1,4 +1,5 @@
-import configparser
+from dotenv import load_dotenv
+import os
 import discord
 from discord import Intents
 from discord import app_commands
@@ -8,9 +9,8 @@ import mcserver_handler
 import music_handler
 import mtg_handler
 
-config = configparser.ConfigParser()
-config.read('config.ini')
-TOKEN = config['Bot']['TOKEN']
+load_dotenv()
+TOKEN = os.getenv("DISCORD_TOKEN")
 intents = Intents.all()
 client = discord_commands.Bot(command_prefix='!', intents=intents)
 commands = client.tree

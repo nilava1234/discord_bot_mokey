@@ -1,4 +1,5 @@
-import configparser
+from dotenv import load_dotenv
+import os
 import discord
 from spotipy.oauth2 import SpotifyClientCredentials
 import spotipy
@@ -6,10 +7,9 @@ import yt_dlp as youtube_dl
 import asyncio
 
 #Initilizng and grabing important variables
-config = configparser.ConfigParser()
-config.read('config.ini')
-SP_CLIENT_ID = config['Spotify']['CLIENT_ID']
-SP_CLIENT_SC = config['Spotify']['CLIENT_SECRET']
+load_dotenv()
+SP_CLIENT_ID = os.getenv("SPOTIFY_CLIENT_ID")
+SP_CLIENT_SC = os.getenv("SPOTIFY_CLIENT_SECRET")
 sp = spotipy.Spotify(client_credentials_manager=SpotifyClientCredentials(client_id=SP_CLIENT_ID, client_secret=SP_CLIENT_SC))
 
 #Global Variables
