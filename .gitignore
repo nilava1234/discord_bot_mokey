@@ -9,3 +9,4 @@
 
 # Allow explicitly tracked files (if needed)
 !.gitignore
+!requirements.txt
