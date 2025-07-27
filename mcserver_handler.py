@@ -6,6 +6,7 @@ import asyncio
 defualt_path = os.path.abspath(os.getcwd())
 vanilla_path = os.path.abspath(os.path.join(os.getcwd(), "vanilla_minecraft/start.sh"))
 atm10_path = os.path.abspath(os.path.join(os.getcwd(), "atm10/run.sh"))
+dc_path = os.path.abspath(os.path.join(os.getcwd(), "dc/run.sh"))
 process = None
 booting = 0
 
@@ -27,6 +28,16 @@ async def run_server(version:str ):
                 cwd = os.path.dirname(defualt_path)
                 return True
             if version == "vanilla":
+                booting = 1
+                cwd = os.path.dirname(vanilla_path)
+                process = subprocess.Popen(vanilla_path, shell=True, stdin=subprocess.PIPE, cwd=cwd)
+                process_id = process.pid
+                await asyncio.sleep(80)
+                print(f"Server Started PID: {process_id}")
+                booting = 0
+                cwd = os.path.dirname(defualt_path)
+                return True
+            if version == "dc":
                 booting = 1
                 cwd = os.path.dirname(vanilla_path)
                 process = subprocess.Popen(vanilla_path, shell=True, stdin=subprocess.PIPE, cwd=cwd)
