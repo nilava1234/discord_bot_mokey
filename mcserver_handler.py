@@ -40,9 +40,9 @@ async def run_server(version:str ):
             if version == "dc":
                 booting = 1
                 cwd = os.path.dirname(vanilla_path)
-                process = subprocess.Popen(vanilla_path, shell=True, stdin=subprocess.PIPE, cwd=cwd)
+                process = subprocess.Popen(dc_path, shell=True, stdin=subprocess.PIPE, cwd=cwd)
                 process_id = process.pid
-                await asyncio.sleep(80)
+                await asyncio.sleep(300)
                 print(f"Server Started PID: {process_id}")
                 booting = 0
                 cwd = os.path.dirname(defualt_path)
