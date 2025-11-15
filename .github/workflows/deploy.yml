@@ -14,13 +14,16 @@ jobs:
     - name: Stop running bot
       run: |
         pkill -f /home/nil/Projects/discord_bot_mokey/run.sh || true
+        echo bot killed
 
     - name: Pull latest repo
       run: |
         cd /home/nil/Projects/discord_bot_mokey
         git pull
+        echo repo pulled
 
     - name: Restart bot
       run: |
         cd /home/nil/Projects/discord_bot_mokey
         nohup bash run.sh > bot.log 2>&1 &
+        echo ran file
