@@ -102,7 +102,7 @@ async def mcreboot(message):
         print(e)
         await message.channel.send("⚠️ An error has occurred.")
 
-@commands.command(name="mcstart", description="Starts the MC:BE Server")
+@commands.command(name="mcstart", description="Starts the a MC Server")
 @app_commands.describe(version="vanilla, atm10, dc (Deceased Craft), rf (Raspberry Flavored)")
 async def mcstart(message, version:str = "vanilla"):
     version = version.lower()
