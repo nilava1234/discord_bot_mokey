@@ -103,7 +103,7 @@ async def mcreboot(message):
         await message.channel.send("⚠️ An error has occurred.")
 
 @commands.command(name="mcstart", description="Starts the MC:BE Server")
-@app_commands.describe(version="vanilla, atm10, dc")
+@app_commands.describe(version="vanilla, atm10, dc (Deceased Craft), rf (Raspberry Flavored)")
 async def mcstart(message, version:str = "vanilla"):
     version = version.lower()
     try:
@@ -117,7 +117,7 @@ async def mcstart(message, version:str = "vanilla"):
         print(e)
         await message.channel.send("⚠️ An error has occurred.")
 
-@commands.command(name="mcstop", description="Stops the MC:BE Server")
+@commands.command(name="mcstop", description="Stops the currently running MC Server")
 async def mcstop(message):
     try:
         if not mcserver_handler.booting:

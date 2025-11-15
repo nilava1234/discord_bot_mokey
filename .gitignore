@@ -3,6 +3,7 @@
 
 # Allow Python files in the current directory
 !*.py
+!*.yaml
 
 # Ignore all directories to prevent subdirectories from being included
 */
