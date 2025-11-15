@@ -3,10 +3,13 @@
 
 # Allow Python files in the current directory
 !*.py
-!*.yaml
+!*.yml
 
 # Ignore all directories to prevent subdirectories from being included
 */
+# Allow only these directories
+!.github/
+!.github/workflows/
 
 # Allow explicitly tracked files (if needed)
 !.gitignore
