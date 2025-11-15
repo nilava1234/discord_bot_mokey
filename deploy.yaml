@@ -1,0 +1,23 @@
+name: Deploy Mokey
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: mokey-runner
+
+    steps:
+    - name: kill current run
+      run: |
+        pkill /home/nil/Projects/discord_bot_mokey/run.sh || true
+    
+    - name: pull code
+      run: | 
+        git pull
+
+    - name: run script
+      run: |
+        ./home/nil/Projects/discord_bot_mokey/run.sh
