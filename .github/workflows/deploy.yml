@@ -7,12 +7,12 @@ on:
 
 jobs:
   deploy:
-    runs-on: mokey-runner
+    runs-on: self-hosted
 
     steps:
     - name: kill current run
       run: |
-        pkill /home/nil/Projects/discord_bot_mokey/run.sh || true
+        pkill -f /home/nil/Projects/discord_bot_mokey/run.sh || true
     
     - name: pull code
       run: | 
@@ -20,4 +20,4 @@ jobs:
 
     - name: run script
       run: |
-        ./home/nil/Projects/discord_bot_mokey/run.sh
+        nohup bash /home/nil/Projects/discord_bot_mokey/run.sh &
