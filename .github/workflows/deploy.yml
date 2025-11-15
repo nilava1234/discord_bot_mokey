@@ -16,6 +16,7 @@ jobs:
     
     - name: pull code
       run: | 
+        cd /home/nil/Projects/discord_bot_mokey
         git pull
 
     - name: run script
