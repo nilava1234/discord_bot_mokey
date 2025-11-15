@@ -12,7 +12,7 @@ jobs:
     steps:
     - name: Stop running bot
       run: |
-        pkill -f run.sh || true
+        pkill -f "python3 main.py" || true
         echo "Old bot killed"
 
     - name: Pull latest repo
@@ -24,6 +24,7 @@ jobs:
     - name: Start bot
       run: |
         cd /home/nil/Projects/discord_bot_mokey
-        nohup ./run.sh > bot.log 2>&1 &
+        source venv/bin/activate
+        nohup python3 main.py > bot.log 2>&1 &
         disown
         echo "Bot started"
