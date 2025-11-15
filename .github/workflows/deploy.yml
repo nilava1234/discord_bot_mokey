@@ -10,20 +10,20 @@ jobs:
     runs-on: self-hosted
 
     steps:
-
     - name: Stop running bot
       run: |
-        pkill -f /home/nil/Projects/discord_bot_mokey/run.sh || true
-        echo bot killed
+        pkill -f run.sh || true
+        echo "Old bot killed"
 
     - name: Pull latest repo
       run: |
         cd /home/nil/Projects/discord_bot_mokey
         git pull
-        echo repo pulled
+        echo "Repo pulled"
 
-    - name: Restart bot
+    - name: Start bot
       run: |
         cd /home/nil/Projects/discord_bot_mokey
-        nohup bash run.sh > bot.log 2>&1 &
-        echo ran file
+        nohup ./run.sh > bot.log 2>&1 &
+        disown
+        echo "Bot started"
