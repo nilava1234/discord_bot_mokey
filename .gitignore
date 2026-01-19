@@ -10,6 +10,8 @@
 # Allow only these directories
 !.github/
 !.github/workflows/
+!tests/
+!venv/
 
 # Allow explicitly tracked files (if needed)
 !.gitignore
