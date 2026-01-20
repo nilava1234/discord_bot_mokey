@@ -13,20 +13,21 @@ with patch('spotipy.Spotify'):
     with patch.dict(os.environ, {'SPOTIFY_CLIENT_ID': 'test_id', 'SPOTIFY_CLIENT_SECRET': 'test_secret'}):
         import music_handler
 
+# to run: .venv/Scripts/python.exe -m pytest tests/test_music.py -v 
 
 class TestQueueManagement:
-    """Test cases for queue management functions"""
+    # Test cases for queue management functions  
     
     @pytest.fixture(autouse=True)
     def reset_queue(self):
-        """Reset queue before each test"""
+        # Reset queue before each test  
         music_handler.queue = []
         yield
         music_handler.queue = []
     
     @pytest.mark.asyncio
     async def test_show_queue_empty(self):
-        """Test showing queue when empty"""
+        # Test showing queue when empty  
         mock_message = AsyncMock()
         mock_message.channel = AsyncMock()
         
@@ -38,7 +39,7 @@ class TestQueueManagement:
     
     @pytest.mark.asyncio
     async def test_show_queue_with_songs(self):
-        """Test showing queue with songs"""
+        # Test showing queue with songs  
         music_handler.queue = [
             ("url1", "Song 1", True),
             ("url2", "Song 2", False),
@@ -61,7 +62,7 @@ class TestQueueManagement:
     
     @pytest.mark.asyncio
     async def test_clear_queue_with_playing_music(self):
-        """Test clearing queue while music is playing"""
+        # Test clearing queue while music is playing  
         music_handler.queue = [("url1", "Song 1", True)]
         
         mock_message = AsyncMock()
@@ -82,13 +83,14 @@ class TestQueueManagement:
     
     @pytest.mark.asyncio
     async def test_clear_queue_without_playing_music(self):
-        """Test clearing queue when no music is playing"""
+        # Test clearing queue when no music is playing  
         music_handler.queue = [("url1", "Song 1", True)]
         
         mock_message = AsyncMock()
         mock_message.channel = AsyncMock()
         mock_message.guild = MagicMock()
         mock_message.client = MagicMock()
+        
         
         mock_voice_client = MagicMock()
         mock_voice_client.is_playing.return_value = False
@@ -101,11 +103,11 @@ class TestQueueManagement:
 
 
 class TestPauseResume:
-    """Test cases for pause and resume functions"""
+    # Test cases for pause and resume functions  
     
     @pytest.mark.asyncio
     async def test_pause_when_playing(self):
-        """Test pausing when music is playing"""
+        # Test pausing when music is playing  
         mock_message = AsyncMock()
         mock_message.channel = AsyncMock()
         mock_message.guild = MagicMock()
@@ -124,7 +126,7 @@ class TestPauseResume:
     
     @pytest.mark.asyncio
     async def test_pause_when_not_playing(self):
-        """Test pausing when no music is playing"""
+        # Test pausing when no music is playing  
         mock_message = AsyncMock()
         mock_message.channel = AsyncMock()
         mock_message.guild = MagicMock()
@@ -143,7 +145,7 @@ class TestPauseResume:
     
     @pytest.mark.asyncio
     async def test_pause_when_voice_client_none(self):
-        """Test pausing when no voice client exists"""
+        # Test pausing when no voice client exists  
         mock_message = AsyncMock()
         mock_message.channel = AsyncMock()
         mock_message.guild = MagicMock()
@@ -158,7 +160,7 @@ class TestPauseResume:
     
     @pytest.mark.asyncio
     async def test_resume_when_paused(self):
-        """Test resuming when music is paused"""
+        # Test resuming when music is paused  
         mock_message = AsyncMock()
         mock_message.channel = AsyncMock()
         mock_message.guild = MagicMock()
@@ -177,7 +179,7 @@ class TestPauseResume:
     
     @pytest.mark.asyncio
     async def test_resume_when_not_paused(self):
-        """Test resuming when music is not paused"""
+        # Test resuming when music is not paused  
         mock_message = AsyncMock()
         mock_message.channel = AsyncMock()
         mock_message.guild = MagicMock()
@@ -196,11 +198,11 @@ class TestPauseResume:
 
 
 class TestSpotifySongHandling:
-    """Test cases for Spotify song handling"""
+    # Test cases for Spotify song handling  
     
     @pytest.fixture(autouse=True)
     def reset_queue(self):
-        """Reset queue before each test"""
+        # Reset queue before each test  
         music_handler.queue = []
         yield
         music_handler.queue = []
@@ -208,7 +210,7 @@ class TestSpotifySongHandling:
     @pytest.mark.asyncio
     @patch('music_handler.sp')
     async def test_handle_spotify_song_success(self, mock_sp):
-        """Test handling Spotify song link successfully"""
+        # Test handling Spotify song link successfully  
         mock_sp.track.return_value = {
             "name": "Test Song",
             "artists": [{"name": "Artist 1"}, {"name": "Artist 2"}]
@@ -230,7 +232,7 @@ class TestSpotifySongHandling:
     @pytest.mark.asyncio
     @patch('music_handler.sp')
     async def test_handle_spotify_song_invalid_link(self, mock_sp):
-        """Test handling invalid Spotify link"""
+        # Test handling invalid Spotify link  
         mock_message = AsyncMock()
         mock_message.channel = AsyncMock()
         
@@ -246,7 +248,7 @@ class TestSpotifySongHandling:
     @pytest.mark.asyncio
     @patch('music_handler.sp')
     async def test_handle_spotify_song_api_error(self, mock_sp):
-        """Test handling Spotify API error"""
+        # Test handling Spotify API error  
         mock_sp.track.side_effect = Exception("API Error")
         
         mock_message = AsyncMock()
@@ -263,11 +265,11 @@ class TestSpotifySongHandling:
 
 
 class TestSpotifyPlaylistHandling:
-    """Test cases for Spotify playlist handling"""
+    # Test cases for Spotify playlist handling  
     
     @pytest.fixture(autouse=True)
     def reset_queue(self):
-        """Reset queue before each test"""
+        # Reset queue before each test  
         music_handler.queue = []
         yield
         music_handler.queue = []
@@ -275,7 +277,7 @@ class TestSpotifyPlaylistHandling:
     @pytest.mark.asyncio
     @patch('music_handler.sp')
     async def test_handle_spotify_playlist_success(self, mock_sp):
-        """Test handling Spotify playlist successfully"""
+        # Test handling Spotify playlist successfully  
         mock_sp.playlist_tracks.return_value = {
             'items': [
                 {
@@ -314,7 +316,7 @@ class TestSpotifyPlaylistHandling:
     @pytest.mark.asyncio
     @patch('music_handler.sp')
     async def test_handle_spotify_playlist_api_error(self, mock_sp):
-        """Test handling Spotify playlist API error"""
+        # Test handling Spotify playlist API error  
         mock_sp.playlist_tracks.side_effect = Exception("API Error")
         
         mock_message = AsyncMock()
@@ -336,11 +338,11 @@ class TestSpotifyPlaylistHandling:
 
 
 class TestSongSearch:
-    """Test cases for song search functionality"""
+    # Test cases for song search functionality  
     
     @pytest.fixture(autouse=True)
     def reset_queue(self):
-        """Reset queue before each test"""
+        # Reset queue before each test  
         music_handler.queue = []
         yield
         music_handler.queue = []
@@ -348,7 +350,7 @@ class TestSongSearch:
     @pytest.mark.asyncio
     @patch('music_handler.sp')
     async def test_handle_song_search_success(self, mock_sp):
-        """Test song search on Spotify successfully"""
+        # Test song search on Spotify successfully  
         mock_sp.search.return_value = {
             'tracks': {
                 'items': [
@@ -373,7 +375,7 @@ class TestSongSearch:
     @pytest.mark.asyncio
     @patch('music_handler.sp')
     async def test_handle_song_search_no_results(self, mock_sp):
-        """Test song search with no results"""
+        # Test song search with no results  
         mock_sp.search.return_value = {'tracks': {'items': []}}
         
         mock_message = AsyncMock()
@@ -389,7 +391,7 @@ class TestSongSearch:
     @pytest.mark.asyncio
     @patch('music_handler.sp')
     async def test_handle_song_search_multiple_artists(self, mock_sp):
-        """Test song search with multiple artists"""
+        # Test song search with multiple artists  
         mock_sp.search.return_value = {
             'tracks': {
                 'items': [
@@ -417,11 +419,11 @@ class TestSongSearch:
 
 
 class TestPlayFunction:
-    """Test cases for the play function"""
+    # Test cases for the play function  
     
     @pytest.fixture(autouse=True)
     def reset_queue(self):
-        """Reset queue before each test"""
+        # Reset queue before each test  
         music_handler.queue = []
         yield
         music_handler.queue = []
@@ -429,7 +431,7 @@ class TestPlayFunction:
     @pytest.mark.asyncio
     @patch('music_handler.handle_spotify_playlist')
     async def test_play_spotify_playlist(self, mock_handle):
-        """Test playing Spotify playlist"""
+        # Test playing Spotify playlist  
         mock_message = AsyncMock()
         mock_message.channel = AsyncMock()
         mock_message.user = MagicMock()
@@ -453,7 +455,7 @@ class TestPlayFunction:
     @pytest.mark.asyncio
     @patch('music_handler.handle_spotify_song')
     async def test_play_spotify_track(self, mock_handle):
-        """Test playing single Spotify track"""
+        # Test playing single Spotify track  
         mock_message = AsyncMock()
         mock_message.channel = AsyncMock()
         mock_message.user = MagicMock()
@@ -476,7 +478,7 @@ class TestPlayFunction:
     
     @pytest.mark.asyncio
     async def test_play_no_voice_channel(self):
-        """Test playing when user is not in voice channel"""
+        # Test playing when user is not in voice channel  
         mock_message = AsyncMock()
         mock_message.channel = AsyncMock()
         mock_message.user = MagicMock()
@@ -491,7 +493,7 @@ class TestPlayFunction:
     @pytest.mark.asyncio
     @patch('music_handler.handle_song_search')
     async def test_play_text_query(self, mock_search):
-        """Test playing with text search query"""
+        # Test playing with text search query  
         mock_search.return_value = ("search query", "Song Title", False)
         
         mock_message = AsyncMock()
@@ -514,11 +516,11 @@ class TestPlayFunction:
 
 
 class TestYouTubeSongHandling:
-    """Test cases for YouTube song handling"""
+    # Test cases for YouTube song handling  
     
     @pytest.fixture(autouse=True)
     def reset_queue(self):
-        """Reset queue before each test"""
+        # Reset queue before each test  
         music_handler.queue = []
         yield
         music_handler.queue = []
@@ -526,7 +528,7 @@ class TestYouTubeSongHandling:
     @pytest.mark.asyncio
     @patch('music_handler.run_yt_dlp_search')
     async def test_handle_youtube_song_success(self, mock_search):
-        """Test handling YouTube song successfully"""
+        # Test handling YouTube song successfully  
         mock_search.return_value = {
             'title': 'Test Video',
             'url': 'http://example.com/stream',
@@ -552,11 +554,11 @@ class TestYouTubeSongHandling:
 
 
 class TestYouTubePlaylistHandling:
-    """Test cases for YouTube playlist handling"""
+    # Test cases for YouTube playlist handling  
     
     @pytest.fixture(autouse=True)
     def reset_queue(self):
-        """Reset queue before each test"""
+        # Reset queue before each test  
         music_handler.queue = []
         yield
         music_handler.queue = []
@@ -564,7 +566,7 @@ class TestYouTubePlaylistHandling:
     @pytest.mark.asyncio
     @patch('music_handler.run_yt_dlp_search')
     async def test_handle_youtube_playlist_success(self, mock_search):
-        """Test handling YouTube playlist successfully"""
+        # Test handling YouTube playlist successfully  
         mock_search.return_value = {
             'entries': [
                 {
@@ -605,3 +607,39 @@ class TestYouTubePlaylistHandling:
         
         assert len(music_handler.queue) == 2
         mock_message.channel.send.assert_called_once()
+
+
+class TestSkip:
+    # Test cases for skip functionality
+    
+    @pytest.fixture(autouse=True)
+    def reset_queue(self):
+        # Reset queue before each test
+        music_handler.queue = []
+        yield
+        music_handler.queue = []
+    
+    @pytest.mark.asyncio
+    async def test_skip_when_music_playing(self):
+        # Test skipping when music is currently playing
+        music_handler.queue = [
+            ("url1", "Song 1", True),
+            ("url2", "Song 2", False),
+        ]
+        
+        mock_message = AsyncMock()
+        mock_message.channel = AsyncMock()
+        mock_message.guild = MagicMock()
+        mock_message.client = MagicMock()
+        
+        mock_voice_client = MagicMock()
+        mock_voice_client.is_playing.return_value = True
+        
+        with patch('discord.utils.get', return_value=mock_voice_client):
+            with patch('music_handler.play_next', new_callable=AsyncMock):
+                await music_handler.skip(mock_message)
+        
+        mock_voice_client.stop.assert_called_once()
+        mock_message.channel.send.assert_called_once()
+        args = mock_message.channel.send.call_args[0][0]
+        assert "skipped" in args.lower()
