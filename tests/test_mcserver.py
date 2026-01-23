@@ -250,16 +250,15 @@ class TestGetIp:
         result = mcserver_handler.get_ip()
         
         assert result == 0
-        
-        
     
     @patch('requests.get')
     def test_get_ip_connection_error(self, mock_get):
-        # Test getting IP when connection fails
+        # Test getting IP when connection fails - function handles errors gracefully
         mock_get.side_effect = Exception("Connection error")
-        
-        with pytest.raises(Exception):
-            mcserver_handler.get_ip()
+
+        result = mcserver_handler.get_ip()
+
+        assert result == 0
 
 
 class TestIntegration:

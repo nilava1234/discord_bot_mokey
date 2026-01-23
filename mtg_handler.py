@@ -26,7 +26,7 @@ def fetch_cards_by_name(name):
 
 
     except Exception as e:
-        print(f"Exception Thrown   \/ \n{e}")
+        print(f"Exception Thrown   \\/ \n{e}")
         url = f"https://api.scryfall.com/cards/named?fuzzy={name}"
         response = requests.get(url)
         if response.status_code == 200:

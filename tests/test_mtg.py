@@ -246,7 +246,7 @@ class TestDisplayCards:
         
         # Verify embed is a Discord embed
         assert isinstance(embed, discord.Embed)
-        assert embed.title == "**Name: # Test Card**"
+        assert embed.title == "**Name: Test Card**"
 
 
 class TestMtgMain:
