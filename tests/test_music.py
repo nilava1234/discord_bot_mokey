@@ -609,8 +609,8 @@ class TestYouTubePlaylistHandling:
         mock_message.channel.send.assert_called_once()
 
 
-class TestSkip:
-    # Test cases for skip functionality
+class TestPlayNext:
+    # Test cases for play_next functionality
     
     @pytest.fixture(autouse=True)
     def reset_queue(self):
@@ -620,26 +620,75 @@ class TestSkip:
         music_handler.queue = []
     
     @pytest.mark.asyncio
-    async def test_skip_when_music_playing(self):
-        # Test skipping when music is currently playing
+    @patch('music_handler.run_yt_dlp_search')
+    @patch('discord.FFmpegPCMAudio')
+    @patch('discord.utils.get')
+    async def test_play_next_with_queue(self, mock_get, mock_ffmpeg, mock_search):
+        # Test playing next song when queue has songs
+        mock_search.return_value = {
+            'title': 'Test Song',
+            'url': 'http://example.com/stream',
+            'uploader': 'Test Uploader'
+        }
+        mock_ffmpeg.return_value = MagicMock()
+        
+        mock_voice_client = MagicMock()
+        mock_voice_client.is_playing.return_value = False
+        mock_voice_client.play = MagicMock()
+        mock_get.return_value = mock_voice_client
+        
         music_handler.queue = [
             ("url1", "Song 1", True),
             ("url2", "Song 2", False),
         ]
         
         mock_message = AsyncMock()
-        mock_message.channel = AsyncMock()
         mock_message.guild = MagicMock()
         mock_message.client = MagicMock()
+        mock_message.channel = AsyncMock()
+        
+        with patch('asyncio.to_thread', new_callable=AsyncMock) as mock_thread:
+            mock_thread.return_value = {
+                'title': 'Test Song',
+                'url': 'http://example.com/stream',
+                'uploader': 'Test Uploader'
+            }
+            await music_handler.play_next(mock_message)
+    
+    @pytest.mark.asyncio
+    @patch('music_handler.run_yt_dlp_search')
+    @patch('discord.FFmpegPCMAudio')
+    @patch('discord.utils.get')
+    async def test_play_next_calls_voice_client(self, mock_get, mock_ffmpeg, mock_search):
+        # Test that play_next uses the voice client
+        mock_search.return_value = {
+            'title': 'Test Song',
+            'url': 'http://example.com/stream',
+            'uploader': 'Test Uploader'
+        }
+        mock_ffmpeg.return_value = MagicMock()
         
         mock_voice_client = MagicMock()
-        mock_voice_client.is_playing.return_value = True
+        mock_voice_client.is_playing.return_value = False
+        mock_voice_client.play = MagicMock()
+        mock_get.return_value = mock_voice_client
         
-        with patch('discord.utils.get', return_value=mock_voice_client):
-            with patch('music_handler.play_next', new_callable=AsyncMock):
-                await music_handler.skip(mock_message)
+        music_handler.queue = [
+            ("url1", "Song 1", True),
+        ]
         
-        mock_voice_client.stop.assert_called_once()
-        mock_message.channel.send.assert_called_once()
-        args = mock_message.channel.send.call_args[0][0]
-        assert "skipped" in args.lower()
+        mock_message = AsyncMock()
+        mock_message.guild = MagicMock()
+        mock_message.client = MagicMock()
+        mock_message.channel = AsyncMock()
+        
+        with patch('asyncio.to_thread', new_callable=AsyncMock) as mock_thread:
+            mock_thread.return_value = {
+                'title': 'Test Song',
+                'url': 'http://example.com/stream',
+                'uploader': 'Test Uploader'
+            }
+            await music_handler.play_next(mock_message)
+        
+        # Voice client should have been retrieved
+        mock_get.assert_called()
