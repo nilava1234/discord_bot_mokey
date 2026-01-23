@@ -10,12 +10,12 @@ import mtg_handler
 
 
 class TestFetchCardsByName:
-    """Test cases for fetch_cards_by_name function"""
+     # Test cases for fetch_cards_by_name function 
     
     @patch('mtg_handler.Card')
     @patch('requests.get')
     def test_fetch_cards_by_name_success(self, mock_get, mock_card_class):
-        """Test fetching card by name successfully using mtgsdk"""
+         # Test fetching card by name successfully using mtgsdk 
         mock_card = MagicMock()
         mock_card.name = "Black Lotus"
         mock_card.text = "Tap, Sacrifice Black Lotus: Add three mana of any one color to your mana pool."
@@ -43,7 +43,7 @@ class TestFetchCardsByName:
     
     @patch('requests.get')
     def test_fetch_cards_by_name_scryfall_success(self, mock_get):
-        """Test fetching card via Scryfall API when mtgsdk fails"""
+         # Test fetching card via Scryfall API when mtgsdk fails 
         mock_response = MagicMock()
         mock_response.status_code = 200
         mock_response.json.return_value = {
@@ -69,7 +69,7 @@ class TestFetchCardsByName:
     
     @patch('requests.get')
     def test_fetch_cards_by_name_no_price(self, mock_get):
-        """Test fetching card when price is not available"""
+         # Test fetching card when price is not available 
         mock_response = MagicMock()
         mock_response.status_code = 200
         mock_response.json.return_value = {
@@ -92,7 +92,7 @@ class TestFetchCardsByName:
     
     @patch('requests.get')
     def test_fetch_cards_by_name_not_commander_legal(self, mock_get):
-        """Test fetching card that is not commander legal"""
+         # Test fetching card that is not commander legal 
         mock_response = MagicMock()
         mock_response.status_code = 200
         mock_response.json.return_value = {
@@ -115,7 +115,7 @@ class TestFetchCardsByName:
     
     @patch('requests.get')
     def test_fetch_cards_by_name_no_image_uri(self, mock_get):
-        """Test fetching card with no image_uris field"""
+         # Test fetching card with no image_uris field 
         mock_response = MagicMock()
         mock_response.status_code = 200
         mock_response.json.return_value = {
@@ -135,7 +135,7 @@ class TestFetchCardsByName:
     
     @patch('requests.get')
     def test_fetch_cards_by_name_not_found(self, mock_get):
-        """Test fetching card that doesn't exist"""
+         # Test fetching card that doesn't exist 
         mock_response = MagicMock()
         mock_response.status_code = 404
         mock_get.return_value = mock_response
@@ -148,7 +148,7 @@ class TestFetchCardsByName:
     
     @patch('requests.get')
     def test_fetch_cards_by_name_api_error(self, mock_get):
-        """Test fetching card when API returns error"""
+         # Test fetching card when API returns error 
         # The function doesn't catch all exceptions, so connection errors will propagate
         mock_get.side_effect = Exception("Connection error")
         
@@ -161,11 +161,11 @@ class TestFetchCardsByName:
 
 
 class TestDisplayCards:
-    """Test cases for display_cards function"""
+     # Test cases for display_cards function 
     
     @pytest.mark.asyncio
     async def test_display_cards_success(self):
-        """Test displaying card with all details"""
+         # Test displaying card with all details 
         card_details = {
             'name': 'Black Lotus',
             'disc': 'Tap, Sacrifice Black Lotus: Add three mana of any one color to your mana pool.',
@@ -187,7 +187,7 @@ class TestDisplayCards:
     
     @pytest.mark.asyncio
     async def test_display_cards_with_legal_status(self):
-        """Test displaying card shows correct legal status"""
+         # Test displaying card shows correct legal status 
         card_details = {
             'name': 'Test Card',
             'disc': 'Test description',
@@ -205,7 +205,7 @@ class TestDisplayCards:
     
     @pytest.mark.asyncio
     async def test_display_cards_with_no_price(self):
-        """Test displaying card with no price available"""
+         # Test displaying card with no price available 
         card_details = {
             'name': 'Unknown Card',
             'disc': 'Unknown description',
@@ -223,7 +223,7 @@ class TestDisplayCards:
     
     @pytest.mark.asyncio
     async def test_display_cards_creates_embed(self):
-        """Test that display_cards creates proper Discord embed"""
+         # Test that display_cards creates proper Discord embed 
         card_details = {
             'name': 'Test Card',
             'disc': 'This is a test card',
@@ -246,17 +246,17 @@ class TestDisplayCards:
         
         # Verify embed is a Discord embed
         assert isinstance(embed, discord.Embed)
-        assert embed.title == "**Name: Test Card**"
+        assert embed.title == "**Name: # Test Card**"
 
 
 class TestMtgMain:
-    """Test cases for mtg_main function"""
+     # Test cases for mtg_main function 
     
     @pytest.mark.asyncio
     @patch('mtg_handler.fetch_cards_by_name')
     @patch('mtg_handler.display_cards')
     async def test_mtg_main_card_found(self, mock_display, mock_fetch):
-        """Test mtg_main when card is found"""
+         # Test mtg_main when card is found 
         card_details = {
             'name': 'Black Lotus',
             'disc': 'Tap, Sacrifice Black Lotus: Add three mana of any one color to your mana pool.',
@@ -281,7 +281,7 @@ class TestMtgMain:
     @pytest.mark.asyncio
     @patch('mtg_handler.fetch_cards_by_name')
     async def test_mtg_main_card_not_found(self, mock_fetch):
-        """Test mtg_main when card is not found"""
+         # Test mtg_main when card is not found 
         mock_fetch.return_value = None
         
         mock_ctx = AsyncMock()
@@ -298,7 +298,7 @@ class TestMtgMain:
     @pytest.mark.asyncio
     @patch('mtg_handler.fetch_cards_by_name')
     async def test_mtg_main_sends_lookup_message(self, mock_fetch):
-        """Test that mtg_main sends lookup message"""
+         # Test that mtg_main sends lookup message 
         mock_fetch.return_value = None
         
         mock_ctx = AsyncMock()
@@ -317,7 +317,7 @@ class TestMtgMain:
     @patch('mtg_handler.fetch_cards_by_name')
     @patch('mtg_handler.display_cards')
     async def test_mtg_main_with_empty_input(self, mock_display, mock_fetch):
-        """Test mtg_main with empty input"""
+         # Test mtg_main with empty input 
         mock_fetch.return_value = None
         
         mock_ctx = AsyncMock()
@@ -331,12 +331,12 @@ class TestMtgMain:
 
 
 class TestIntegration:
-    """Integration tests for mtg_handler"""
+    # Integration tests for mtg_handler 
     
     @pytest.mark.asyncio
     @patch('requests.get')
     async def test_full_workflow_card_lookup(self, mock_get):
-        """Test complete workflow: lookup -> display"""
+         # Test complete workflow: lookup -> display 
         mock_response = MagicMock()
         mock_response.status_code = 200
         mock_response.json.return_value = {
@@ -372,7 +372,7 @@ class TestIntegration:
     @patch('mtg_handler.fetch_cards_by_name')
     @patch('mtg_handler.display_cards')
     async def test_full_mtg_main_workflow(self, mock_display, mock_fetch):
-        """Test complete mtg_main workflow"""
+         # Test complete mtg_main workflow 
         card_details = {
             'name': 'Test Card',
             'disc': 'Test description',
@@ -396,10 +396,10 @@ class TestIntegration:
 
 
 class TestCardDataStructure:
-    """Test cases for card data structure validation"""
+     # Test cases for card data structure validation 
     
     def test_card_details_has_required_fields(self):
-        """Test that fetched card details have all required fields"""
+         # Test that fetched card details have all required fields 
         card_details = {
             'name': 'Test Card',
             'disc': 'Test description',
@@ -413,7 +413,7 @@ class TestCardDataStructure:
             assert field in card_details
     
     def test_price_field_format(self):
-        """Test that price field has correct format"""
+         # Test that price field has correct format 
         prices = ['100.00', '-00.00', '0.50', '9999.99']
         
         for price in prices:
@@ -422,7 +422,7 @@ class TestCardDataStructure:
             assert price == '-00.00' or '.' in price
     
     def test_legal_field_is_boolean(self):
-        """Test that legal field is boolean"""
+         # Test that legal field is boolean 
         legal_values = [True, False]
         
         for legal in legal_values:
@@ -430,12 +430,12 @@ class TestCardDataStructure:
 
 
 class TestErrorHandling:
-    """Test error handling in mtg_handler"""
+     # Test error handling in mtg_handler 
     
     @pytest.mark.asyncio
     async def test_display_cards_with_invalid_data(self):
-        """Test display_cards handles missing fields gracefully"""
-        # Test with minimal data
+         # Test display_cards handles missing fields gracefully 
+        # # Test with minimal data
         card_details = {
             'name': 'Card',
             'disc': 'Description',
@@ -453,7 +453,7 @@ class TestErrorHandling:
     
     @patch('requests.get')
     def test_fetch_cards_connection_timeout(self, mock_get):
-        """Test fetch_cards_by_name handles connection timeout"""
+         # Test fetch_cards_by_name handles connection timeout 
         mock_get.side_effect = TimeoutError("Connection timeout")
         
         with patch('mtg_handler.Card') as mock_card_class:

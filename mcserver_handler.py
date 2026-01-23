@@ -4,8 +4,8 @@ Minecraft Server Handler
 This module manages the lifecycle of various Minecraft server instances including:
 - ATM10 (All The Mods 10)
 - Vanilla Minecraft
-- DC (Data Center)
-- RF (Rotarycraft)
+- DC (Decresed Craft, currently offline)
+- RF (Raspberry Flavored)
 
 It provides functions to start, stop, and monitor server processes.
 """
@@ -104,7 +104,7 @@ async def run_server(version: str) -> bool:
 
 async def stop_server() -> bool:
     """
-    Gracefully stop the running Minecraft server.
+    Stop the running Minecraft server.
 
     First attempts to send "stop" command via stdin for clean shutdown.
     If that fails or times out, forcefully terminates the process.
@@ -157,7 +157,7 @@ def status() -> bool:
     return process is not None
 
 
-def get_ip() -> str:
+def get_ip():
     """
     Retrieve the public IP address of the machine.
 
@@ -165,11 +165,11 @@ def get_ip() -> str:
     providing connection information to players.
 
     Returns:
-        str: Public IP address as a string, or "0" if request fails
+        str: Public IP address on success, or 0 (int) if request fails
     """
     try:
         response = requests.get("https://api.ipify.org")
-        return response.text if response.status_code == 200 else "0"
+        return response.text if response.status_code == 200 else 0
     except Exception as e:
         print(f"Error retrieving IP: {e}")
-        return "0"
+        return 0

@@ -1,10 +1,11 @@
-from dotenv import load_dotenv
-import os
-import discord
-from discord import Intents
-from discord import app_commands
-from discord.ext import commands as discord_commands
 import asyncio
+import os
+
+import discord
+from discord import Intents, app_commands
+from discord.ext import commands as discord_commands
+from dotenv import load_dotenv
+
 import mcserver_handler
 import music_handler
 import mtg_handler
@@ -15,26 +16,41 @@ intents = Intents.all()
 client = discord_commands.Bot(command_prefix='!', intents=intents)
 commands = client.tree
 
+
+# ============================================================================
+# EVENT HANDLERS
+# ============================================================================
+
 @client.event
 async def on_ready():
+    """Triggered when the bot successfully connects to Discord."""
     try:
         print(f'{client.user} is now running')
         synched = await commands.sync()
         print(f"Synched {len(synched)} command(s)")
     except Exception as e:
-        print("Failed in on_ready")
-        print(e)
+        print(f"Failed in on_ready: {e}")
+
+# ============================================================================
+# MTG COMMANDS
+# ============================================================================
 
 @commands.command(name="mtg", description="Provide a name")
 async def mtg(ctx, query: str):
+    """Search for Magic: The Gathering card information by name."""
     try:
         await mtg_handler.mtg_main(ctx, query)
     except Exception as e:
-        print(e)
+        print(f"MTG command error: {e}")
         await ctx.send("⚠️ An error has occurred.")
+
+# ============================================================================
+# VOICE COMMANDS
+# ============================================================================
 
 @commands.command(name='leave')
 async def leave(ctx):
+    """Disconnect the bot from the current voice channel."""
     try:
         if ctx.voice_client:
             await ctx.voice_client.disconnect()
@@ -44,8 +60,13 @@ async def leave(ctx):
         print(e)
         await ctx.send("⚠️ An error has occurred.")
 
+# ============================================================================
+# MUSIC COMMANDS
+# ============================================================================
+
 @commands.command(name="skip", description="Skip Current Song")
 async def next(message):
+    """Skip the currently playing song and play the next one in queue."""
     try:
         await message.response.send_message("⏭️ Skipping Current Song...")
         voice_client = discord.utils.get(message.client.voice_clients, guild=message.guild)
@@ -58,6 +79,7 @@ async def next(message):
 @commands.command(name="play", description="Play Music from Spotify or Youtube")
 @app_commands.describe(link="Youtube, Spotify, or a Search Query")
 async def play(message, link: str):
+    """Play a song or playlist from YouTube, Spotify, or search query."""
     try:
         await message.response.send_message("Queuing Up...")
         await music_handler.play(message, link)
@@ -67,6 +89,7 @@ async def play(message, link: str):
 
 @commands.command(name="pause", description="Pause Current Song")
 async def pause(message):
+    """Pause the currently playing song."""
     try:
         await message.response.send_message("Paused ⏸︎")
         await music_handler.pause(message)
@@ -76,6 +99,7 @@ async def pause(message):
 
 @commands.command(name="stop", description="Stops the current queue and clears it")
 async def stop(message):
+    """Stop music playback and clear the entire queue."""
     try:
         await message.response.send_message("Clearing Queue...")
         await music_handler.clear_queue(message)
@@ -86,6 +110,7 @@ async def stop(message):
 
 @commands.command(name="queue", description="Lists all songs in queue")
 async def queue(message):
+    """Display all songs currently in the music queue."""
     try:
         await message.response.send_message("Fetching Queue...")
         await music_handler.show_queue(message)
@@ -93,8 +118,13 @@ async def queue(message):
         print(e)
         await message.channel.send("⚠️ An error has occurred.")
 
+# ============================================================================
+# MINECRAFT SERVER COMMANDS
+# ============================================================================
+
 @commands.command(name="mcreboot", description="Reboots the server")
 async def mcreboot(message):
+    """Reboot the Minecraft server (stop then start)."""
     try:
         await mcstop(message)
         await mcstart(message)
@@ -104,7 +134,8 @@ async def mcreboot(message):
 
 @commands.command(name="mcstart", description="Starts the a MC Server")
 @app_commands.describe(version="vanilla, atm10, dc (Deceased Craft), rf (Raspberry Flavored)")
-async def mcstart(message, version:str = "vanilla"):
+async def mcstart(message, version: str = "vanilla"):
+    """Start a Minecraft server. Versions: vanilla, atm10, dc, rf."""
     version = version.lower()
     try:
         print("Attempting to start the server...")
@@ -119,6 +150,7 @@ async def mcstart(message, version:str = "vanilla"):
 
 @commands.command(name="mcstop", description="Stops the currently running MC Server")
 async def mcstop(message):
+    """Stop the currently running Minecraft server."""
     try:
         if not mcserver_handler.booting:
             print("Closing the server...")
@@ -135,6 +167,7 @@ async def mcstop(message):
 
 @commands.command(name="mcstatus", description="Gets the status of the MC:BE Server")
 async def mcstatus(message):
+    """Check if the Minecraft server is currently online or offline."""
     try:
         print("Grabbing server status")
         stat = mcserver_handler.status()
@@ -148,6 +181,7 @@ async def mcstatus(message):
 
 @commands.command(name="mcip", description="Gets the IP, Port, and status of the server")
 async def mcip(message: discord.Interaction):
+    """Get the server IP and port (deletes message after 30 seconds for security)."""
     try:
         ipv4_address = "nilavashub.duckdns.org"
         print(f"IP: {ipv4_address}")
@@ -162,8 +196,13 @@ async def mcip(message: discord.Interaction):
         print(e)
         await message.channel.send("⚠️ An error has occurred.")
 
+# ============================================================================
+# UTILITY COMMANDS
+# ============================================================================
+
 @commands.command(name="help", description="List all commands")
 async def help(message):
+    """Display all available bot commands and their descriptions."""
     try:
         print("Asking for help")
         await message.response.send_message("""
