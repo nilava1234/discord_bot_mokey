@@ -30,6 +30,16 @@ async def on_ready():
         print(f"Synched {len(synched)} command(s)")
     except Exception as e:
         print(f"Failed in on_ready: {e}")
+        
+@client.hybrid_command(name="sync", description="Sync Commands")
+async def sync(ctx):
+    """Sync the bot's commands with Discord."""
+    try:
+        synched = await commands.sync()
+        await ctx.send(f"Synched {len(synched)} command(s)")
+    except Exception as e:
+        print(f"Sync command error: {e}")
+        await ctx.send("⚠️ An error has occurred.")
 
 # ============================================================================
 # MTG COMMANDS
