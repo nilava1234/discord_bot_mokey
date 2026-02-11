@@ -311,15 +311,12 @@ async def handle_youtube_song(message: discord.Interaction, song_link: str):
     except Exception as e:
         print(e)
 
-def ensure_guild_queue(guild_id: int):
-    if guild_id not in queue:
-        queue[guild_id] = []
 
 #METHOD PLAY    ======Helpers======     (check_idle)    ===============================================
 async def play(message: discord.Interaction, link: str):
     global queue
-
-    ensure_guild_queue(message.guild.id)
+    if message.guild.id not in queue:
+        queue[message.guild.id] = []
 
     voice_client = await get_voice_client(message)
     if not voice_client:
