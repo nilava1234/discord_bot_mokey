@@ -286,8 +286,6 @@ async def handle_youtube_playlist(message: discord.Interaction, playlist_link: s
 
             if url:
                 queue[message.guild.id].append((url,  f"{title} by {author}", True))
-            else: 
-                print(url)
         await message.channel.send(f"📃 Queued {len(playlist_info['entries'])} songs from the playlist!")
 
 
@@ -312,7 +310,7 @@ async def handle_youtube_song(message: discord.Interaction, song_link: str):
         print(e)
 
 
-#METHOD PLAY: Plays music
+#METHOD PLAY    ======Helpers======     (check_idle)    ===============================================
 async def play(message: discord.Interaction, link: str):
     global queue
     if message.guild.id not in queue:
