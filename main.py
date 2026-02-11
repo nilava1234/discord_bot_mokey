@@ -15,6 +15,9 @@ TOKEN = os.getenv("DISCORD_TOKEN")
 intents = Intents.all()
 client = discord_commands.Bot(command_prefix='!', intents=intents)
 commands = client.tree
+admin_server_ids = [1301377784505040968,1468135016931524613]
+permitted_servers = []
+permitted_servers.extend(admin_server_ids)
 
 
 # ============================================================================
@@ -28,8 +31,29 @@ async def on_ready():
         print(f'{client.user} is now running')
         synched = await commands.sync()
         print(f"Synched {len(synched)} command(s)")
+
+        print(f"Checking servers for permissions...")
+        for guild in client.guilds:
+            if guild.id in permitted_servers:
+                print(f"Bot is active in: {guild.name} (ID: {guild.id})")
+            else:
+                print(f"Killing bot in: {guild.name} (ID: {guild.id})")
+                await guild.leave()
+
     except Exception as e:
         print(f"Failed in on_ready: {e}")
+@client.event
+async def on_guild_join(guild):
+    try:
+        print(f"Joined new guild: {guild.name} (ID: {guild.id})")
+        if guild.id not in permitted_servers:
+            print(f"Killing bot in: {guild.name} (ID: {guild.id})")
+            await guild.leave()
+        else:
+            print(f"Bot is active in: {guild.name} (ID: {guild.id})")
+    except Exception as e:
+        print(f"Failed in on_guild_join: {e}")
+
         
 @client.hybrid_command(name="sync", description="Sync Commands")
 async def sync(ctx):
@@ -135,76 +159,88 @@ async def queue(message):
 @commands.command(name="mcreboot", description="Reboots the server")
 async def mcreboot(message):
     """Reboot the Minecraft server (stop then start)."""
-    try:
-        await mcstop(message)
-        await mcstart(message)
-    except Exception as e:
-        print(e)
-        await message.channel.send("⚠️ An error has occurred.")
+    if message.guild.id in admin_server_ids:
+        try:
+            await mcstop(message)
+            await mcstart(message)
+        except Exception as e:
+            print(e)
+            await message.channel.send("⚠️ An error has occurred.")
+    else:
+        await message.response.send_message("Sorry, you don't have permission to use this command.")
 
 @commands.command(name="mcstart", description="Starts the a MC Server")
 @app_commands.describe(version="vanilla, atm10, dc (Deceased Craft), rf (Raspberry Flavored)")
 async def mcstart(message, version: str = "vanilla"):
     """Start a Minecraft server. Versions: vanilla, atm10, dc, rf."""
-    version = version.lower()
-    try:
-        print("Attempting to start the server...")
-        await message.response.send_message("Server Booting Up...")
-        if await mcserver_handler.run_server(version):
-            await message.channel.send("-Server is Online-")
-        else:
-            await message.channel.send("Oops something went wrong. Check Server Status.")
-    except Exception as e:
-        print(e)
-        await message.channel.send("⚠️ An error has occurred.")
+    if message.guild.id in admin_server_ids:
+        version = version.lower()
+        try:
+
+            await message.response.send_message("Server Booting Up...")
+            if await mcserver_handler.run_server(version):
+                await message.channel.send("-Server is Online-")
+            else:
+                await message.channel.send("Oops something went wrong. Check Server Status.")
+        except Exception as e:
+            print(e)
+            await message.channel.send("⚠️ An error has occurred.")
+    else:
+        await message.response.send_message("Sorry, you don't have permission to use this command.")
 
 @commands.command(name="mcstop", description="Stops the currently running MC Server")
 async def mcstop(message):
     """Stop the currently running Minecraft server."""
-    try:
-        if not mcserver_handler.booting:
-            print("Closing the server...")
-            await message.response.send_message("Server shutting down...")
-            if await mcserver_handler.stop_server():
-                await message.channel.send("-Server is Offline-")
+    if message.guild.id in admin_server_ids:
+        try:
+            if not mcserver_handler.booting:
+                await message.response.send_message("Server shutting down...")
+                if await mcserver_handler.stop_server():
+                    await message.channel.send("-Server is Offline-")
+                else:
+                    await message.channel.send("Oops something went wrong. Check Server Status")
             else:
-                await message.channel.send("Oops something went wrong. Check Server Status")
-        else:
-            await message.response.send_message("Oops, looks like a server is currently booting up, please wait.")
-    except Exception as e:
-        print(e)
-        await message.channel.send("⚠️ An error has occurred.")
+                await message.response.send_message("Oops, looks like a server is currently booting up, please wait.")
+        except Exception as e:
+            print(e)
+            await message.channel.send("⚠️ An error has occurred.")
+    else:
+        await message.response.send_message("Sorry, you don't have permission to use this command.")
 
 @commands.command(name="mcstatus", description="Gets the status of the MC:BE Server")
 async def mcstatus(message):
     """Check if the Minecraft server is currently online or offline."""
-    try:
-        print("Grabbing server status")
-        stat = mcserver_handler.status()
-        if stat:
-            await message.response.send_message("Server: Active")
-        else:
-            await message.response.send_message("Server: Offline")
-    except Exception as e:
-        print(e)
-        await message.channel.send("⚠️ An error has occurred.")
+    if message.guild.id in admin_server_ids:
+        try:
+            stat = mcserver_handler.status()
+            if stat:
+                await message.response.send_message("Server: Active")
+            else:
+                await message.response.send_message("Server: Offline")
+        except Exception as e:
+            print(e)
+            await message.channel.send("⚠️ An error has occurred.")
+    else:
+        await message.response.send_message("Sorry, you don't have permission to use this command.")
 
 @commands.command(name="mcip", description="Gets the IP, Port, and status of the server")
 async def mcip(message: discord.Interaction):
     """Get the server IP and port (deletes message after 30 seconds for security)."""
-    try:
-        ipv4_address = "nilavashub.duckdns.org"
-        print(f"IP: {ipv4_address}")
-        stat = "Online" if mcserver_handler.status() else "Offline"
-        await message.response.send_message(
-            f"REMEMBER THIS IS SECURITY SENSITIVE, DON'T SHARE WITH PEOPLE\n"
-            f"IP: ||{ipv4_address}|| \nPort: ||19132||\nStatus: {stat}"
-        )
-        await asyncio.sleep(30)
-        await message.delete_original_response()
-    except Exception as e:
-        print(e)
-        await message.channel.send("⚠️ An error has occurred.")
+    if message.guild.id in admin_server_ids:
+        try:
+            ipv4_address = "nilavashub.duckdns.org"
+            stat = "Online" if mcserver_handler.status() else "Offline"
+            await message.response.send_message(
+                f"REMEMBER THIS IS SECURITY SENSITIVE, DON'T SHARE WITH PEOPLE\n"
+                f"IP: ||{ipv4_address}|| \nPort: ||19132||\nStatus: {stat}"
+            )
+            await asyncio.sleep(30)
+            await message.delete_original_response()
+        except Exception as e:
+            print(e)
+            await message.channel.send("⚠️ An error has occurred.")
+    else:
+        await message.response.send_message("Sorry, you don't have permission to use this command.")
 
 # ============================================================================
 # UTILITY COMMANDS

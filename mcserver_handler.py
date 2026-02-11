@@ -92,7 +92,6 @@ async def run_server(version: str) -> bool:
         # Wait for server to boot up
         await asyncio.sleep(boot_time)
 
-        print(f"Server Started PID: {process_id}")
         booting = 0
         return True
 
