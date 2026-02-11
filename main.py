@@ -9,6 +9,7 @@ from dotenv import load_dotenv
 import mcserver_handler
 import music_handler
 import mtg_handler
+import stock_handler
 
 load_dotenv()
 TOKEN = os.getenv("DISCORD_TOKEN")
@@ -243,6 +244,143 @@ async def mcip(message: discord.Interaction):
         await message.response.send_message("Sorry, you don't have permission to use this command.")
 
 # ============================================================================
+# STOCK COMMANDS
+# ============================================================================
+
+@commands.command(name="apistatus", description="Check current API usage")
+async def apistatus(message: discord.Interaction):
+    """Display current Finnhub API usage statistics."""
+    try:
+        usage = stock_handler.get_api_usage()
+        
+        embed = discord.Embed(
+            title="📊 Finnhub API Status",
+            color=discord.Color.blue()
+        )
+        
+        # Calculate percentage used
+        percentage_used = (usage['calls_this_minute'] / usage['limit']) * 100
+        
+        # Create a visual progress bar
+        filled = int(percentage_used / 5)  # 20 bars max
+        bar = "█" * filled + "░" * (20 - filled)
+        
+        embed.add_field(
+            name="Calls This Minute",
+            value=f"`{bar}` {usage['calls_this_minute']}/{usage['limit']} ({percentage_used:.1f}%)",
+            inline=False
+        )
+        embed.add_field(
+            name="Remaining Calls",
+            value=f"{usage['remaining']} calls available",
+            inline=False
+        )
+        embed.add_field(
+            name="Total Calls (Session)",
+            value=f"{usage['total_calls']} total API calls made",
+            inline=False
+        )
+        
+        # Add status indicator
+        if usage['calls_this_minute'] >= 50:
+            status = "🔴 High usage - approaching limit"
+        elif usage['calls_this_minute'] >= 30:
+            status = "🟡 Moderate usage"
+        else:
+            status = "🟢 Low usage"
+        
+        embed.add_field(name="Status", value=status, inline=False)
+        embed.set_footer(text="Rate limit resets every 60 seconds")
+        
+        await message.response.send_message(embed=embed)
+        
+    except Exception as e:
+        print(f"API status command error: {e}")
+        await message.response.send_message("⚠️ An error has occurred.")
+
+@commands.command(name="stock", description="Get stock information by ticker")
+@app_commands.describe(ticker="Stock ticker symbol (e.g., AAPL, MSFT)")
+async def stock(message: discord.Interaction, ticker: str):
+    """Fetch real-time stock information from Finnhub API."""
+    try:
+        await message.response.defer()
+        stock_info = stock_handler.get_stock(ticker.upper())
+        
+        if not stock_info:
+            await message.followup.send(f"❌ Unable to find stock data for **{ticker.upper()}**. Please check the ticker symbol.")
+            return
+        
+        # Format the change color based on positive/negative
+        change = stock_info.get("change", 0)
+        change_percent = stock_info.get("change_percent", 0)
+        change_emoji = "📈" if change >= 0 else "📉"
+        
+        embed = discord.Embed(
+            title=f"{stock_info.get('name', 'N/A')} ({stock_info.get('ticker')})",
+            description=stock_info.get("description", "N/A"),
+            color=discord.Color.green() if change >= 0 else discord.Color.red()
+        )
+        
+        embed.add_field(name="💰 Price", value=f"${stock_info.get('price', 'N/A')}", inline=True)
+        embed.add_field(name=f"{change_emoji} Change", value=f"${change} ({change_percent}%)", inline=True)
+        embed.add_field(name="📊 Sector", value=stock_info.get('sector', 'N/A'), inline=True)
+        embed.add_field(name="🏢 Market Cap", value=f"${stock_info.get('market_cap', 'N/A')}", inline=True)
+        embed.add_field(name="📈 P/E Ratio", value=str(stock_info.get('pe_ratio', 'N/A')), inline=True)
+        embed.add_field(name="📅 Previous Close", value=f"${stock_info.get('previous_close', 'N/A')}", inline=True)
+        embed.add_field(name="⬆️ High", value=f"${stock_info.get('high', 'N/A')}", inline=True)
+        embed.add_field(name="⬇️ Low", value=f"${stock_info.get('low', 'N/A')}", inline=True)
+        embed.add_field(name="💾 Volume", value=str(stock_info.get('volume', 'N/A')), inline=True)
+        
+        if stock_info.get('website'):
+            embed.add_field(name="🔗 Website", value=f"[Link]({stock_info.get('website')})", inline=False)
+        
+        # Add warning message about data accuracy
+        embed.add_field(name="⚠️ Data Accuracy", value="Stock data may be delayed by up to 15 minutes. Always verify with official sources before making investment decisions.", inline=False)
+        
+        # Add API usage counter
+        usage = stock_handler.get_api_usage()
+        embed.set_footer(text=f"API Calls: {usage['calls_this_minute']}/{usage['limit']} this minute | Total: {usage['total_calls']}")
+        
+        await message.followup.send(embed=embed)
+        
+    except Exception as e:
+        print(f"Stock command error: {e}")
+        await message.followup.send(f"⚠️ {str(e)}")
+
+@commands.command(name="stocksearch", description="Search for stocks by company name")
+@app_commands.describe(query="Company name or partial ticker to search for")
+async def stocksearch(message: discord.Interaction, query: str):
+    """Search for stocks by company name or ticker."""
+    try:
+        await message.response.defer()
+        results = stock_handler.search_stocks(query)
+        
+        if not results:
+            await message.followup.send(f"❌ No results found for **{query}**.")
+            return
+        
+        embed = discord.Embed(
+            title=f"Stock Search Results for '{query}'",
+            color=discord.Color.blue(),
+            description="Click on a ticker to get more information"
+        )
+        
+        # Limit to 25 results (Discord embed field limit)
+        for stock in results[:25]:
+            ticker = stock.get('symbol', 'N/A')
+            name = stock.get('description', 'N/A')
+            embed.add_field(name=f"📌 {ticker}", value=name, inline=False)
+        
+        # Add API usage counter
+        usage = stock_handler.get_api_usage()
+        embed.set_footer(text=f"Showing {min(len(results), 25)} of {len(results)} results | API Calls: {usage['calls_this_minute']}/{usage['limit']} this minute | Total: {usage['total_calls']}")
+        await message.followup.send(embed=embed)
+        
+    except Exception as e:
+        print(f"Stock search error: {e}")
+        await message.followup.send(f"⚠️ {str(e)}")
+
+# ============================================================================
 # UTILITY COMMANDS
 # ============================================================================
 
@@ -269,9 +407,17 @@ queue - Provides a list of songs in queue
 pause - Pauses the current song
 resume - Resumes the current paused song
 stop - Stops the current and clears the queue
+========================
+***Stock Market Data***
+stock - Get current stock price and information by ticker symbol
+stocksearch - Search for stocks by company name
+apistatus - Check current API usage and rate limit status
+========================
+***TCG (Trading Card Games)***
+mtg - Search for Magic: The Gathering card information
 """)
     except Exception as e:
-        print(e)
+        print(f"Help command error: {e}")
         await message.channel.send("⚠️ An error has occurred.")
 
 client.run(TOKEN)
