@@ -9,6 +9,7 @@ from dotenv import load_dotenv
 import mcserver_handler
 import music_handler
 import mtg_handler
+import stock_data
 
 load_dotenv()
 TOKEN = os.getenv("DISCORD_TOKEN")
