@@ -228,11 +228,11 @@ async def mcip(message: discord.Interaction):
     """Get the server IP and port (deletes message after 30 seconds for security)."""
     if message.guild.id in admin_server_ids:
         try:
-            ipv4_address = "nilavashub.duckdns.org"
+            ipv4_address = os.getenv("IP")
             stat = "Online" if mcserver_handler.status() else "Offline"
             await message.response.send_message(
-                f"REMEMBER THIS IS SECURITY SENSITIVE, DON'T SHARE WITH PEOPLE\n"
-                f"IP: ||{ipv4_address}|| \nPort: ||19132||\nStatus: {stat}"
+                f"⚠️REMEMBER THIS IS SECURITY SENSITIVE⚠️\n--DO NOT SHARE WITH ANYONE--\n"
+                f"IP: ||{ipv4_address}|| \nJava Port: ||25565|| \nBE Port: ||19132||\nStatus: {stat}"
             )
             await asyncio.sleep(30)
             await message.delete_original_response()
