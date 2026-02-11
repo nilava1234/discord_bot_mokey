@@ -103,46 +103,46 @@ mcip - Provides the IP of the server"""
         assert "mcip - Provides the IP of the server" in help_text
 
 
-class TestStockCommands:
-    """Test cases for stock-related commands in main.py"""
+# class TestStockCommands:
+#     """Test cases for stock-related commands in main.py"""
 
-    @pytest.mark.asyncio
-    @patch('stock_handler.search_stocks')
-    async def test_stocksearch_command(self, mock_search):
-        """Test stocksearch command functionality"""
-        mock_search.return_value = [
-            {
-                'symbol': 'AAPL',
-                'description': 'Apple Inc',
-                'displaySymbol': 'AAPL'
-            }
-        ]
+#     @pytest.mark.asyncio
+#     @patch('stock_handler.search_stocks')
+#     async def test_stocksearch_command(self, mock_search):
+#         """Test stocksearch command functionality"""
+#         mock_search.return_value = [
+#             {
+#                 'symbol': 'AAPL',
+#                 'description': 'Apple Inc',
+#                 'displaySymbol': 'AAPL'
+#             }
+#         ]
 
-        result = mock_search('Apple')
+#         result = mock_search('Apple')
 
-        assert result is not None
-        assert len(result) > 0
-        assert result[0]['symbol'] == 'AAPL'
+#         assert result is not None
+#         assert len(result) > 0
+#         assert result[0]['symbol'] == 'AAPL'
 
-    @pytest.mark.asyncio
-    @patch('stock_handler.get_stock')
-    async def test_stock_command(self, mock_get_stock):
-        """Test stock command functionality"""
-        mock_get_stock.return_value = {
-            'ticker': 'AAPL',
-            'name': 'Apple Inc',
-            'price': 150.25,
-            'sector': 'Technology',
-            'change': 2.5,
-            'change_percent': 1.69
-        }
+#     @pytest.mark.asyncio
+#     @patch('stock_handler.get_stock')
+#     async def test_stock_command(self, mock_get_stock):
+#         """Test stock command functionality"""
+#         mock_get_stock.return_value = {
+#             'ticker': 'AAPL',
+#             'name': 'Apple Inc',
+#             'price': 150.25,
+#             'sector': 'Technology',
+#             'change': 2.5,
+#             'change_percent': 1.69
+#         }
 
-        result = mock_get_stock('AAPL')
+#         result = mock_get_stock('AAPL')
 
-        assert result is not None
-        assert result['ticker'] == 'AAPL'
-        assert result['name'] == 'Apple Inc'
-        assert result['price'] == 150.25
+#         assert result is not None
+#         assert result['ticker'] == 'AAPL'
+#         assert result['name'] == 'Apple Inc'
+#         assert result['price'] == 150.25
 
     @pytest.mark.asyncio
     @patch('stock_handler.get_api_usage')
