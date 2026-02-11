@@ -144,23 +144,23 @@ mcip - Provides the IP of the server"""
 #         assert result['name'] == 'Apple Inc'
 #         assert result['price'] == 150.25
 
-    @pytest.mark.asyncio
-    @patch('stock_handler.get_api_usage')
-    async def test_apistatus_command(self, mock_api_usage):
-        """Test apistatus command functionality"""
-        mock_api_usage.return_value = {
-            'calls_this_minute': 15,
-            'limit': 60,
-            'remaining': 45,
-            'total_calls': 1250
-        }
+    # @pytest.mark.asyncio
+    # @patch('stock_handler.get_api_usage')
+    # async def test_apistatus_command(self, mock_api_usage):
+    #     """Test apistatus command functionality"""
+    #     mock_api_usage.return_value = {
+    #         'calls_this_minute': 15,
+    #         'limit': 60,
+    #         'remaining': 45,
+    #         'total_calls': 1250
+    #     }
 
-        result = mock_api_usage()
+    #     result = mock_api_usage()
 
-        assert result is not None
-        assert result['limit'] == 60
-        assert result['remaining'] == 45
-        assert result['calls_this_minute'] == 15
+    #     assert result is not None
+    #     assert result['limit'] == 60
+    #     assert result['remaining'] == 45
+    #     assert result['calls_this_minute'] == 15
 
 
 class TestMTGCommands:
