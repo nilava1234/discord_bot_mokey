@@ -48,7 +48,7 @@ def fetch_cards_by_effect(key):
 
 async def display_cards(ctx, card_details):
     # card = cards[0]
-    print(card_details['name'])
+
     # await ctx.channel.send(
     #     f"**Name:{card_details['name']}**\n"
     #     f"Discription:\n {card_details['disc']}\n\n"
@@ -67,7 +67,6 @@ async def display_cards(ctx, card_details):
         
 # Main function to display cards based on user choice
 async def mtg_main(ctx, input):
-    print(input)
     await ctx.response.send_message(f"Looking up \"{input}\" ...")
     card_detials = fetch_cards_by_name(input)
     if card_detials != None:
