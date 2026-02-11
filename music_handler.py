@@ -312,7 +312,7 @@ async def handle_youtube_song(message: discord.Interaction, song_link: str):
         print(e)
 
 
-#METHOD PLAY    ======Helpers======     (check_idle)    ===============================================
+#METHOD PLAY: Plays music
 async def play(message: discord.Interaction, link: str):
     global queue
     if message.guild.id not in queue:
