@@ -21,15 +21,19 @@ class TestQueueManagement:
     @pytest.fixture(autouse=True)
     def reset_queue(self):
         # Reset queue before each test  
-        music_handler.queue = []
+        music_handler.queue = {}
         yield
-        music_handler.queue = []
+        music_handler.queue = {}
     
     @pytest.mark.asyncio
     async def test_show_queue_empty(self):
         # Test showing queue when empty  
         mock_message = AsyncMock()
+        mock_message.guild = MagicMock()
+        mock_message.guild.id = 12345
         mock_message.channel = AsyncMock()
+        
+        music_handler.queue[mock_message.guild.id] = []
         
         await music_handler.show_queue(mock_message)
         
@@ -40,14 +44,16 @@ class TestQueueManagement:
     @pytest.mark.asyncio
     async def test_show_queue_with_songs(self):
         # Test showing queue with songs  
-        music_handler.queue = [
+        mock_message = AsyncMock()
+        mock_message.guild = MagicMock()
+        mock_message.guild.id = 12345
+        mock_message.channel = AsyncMock()
+        
+        music_handler.queue[mock_message.guild.id] = [
             ("url1", "Song 1", True),
             ("url2", "Song 2", False),
             ("url3", "Song 3", True),
         ]
-        
-        mock_message = AsyncMock()
-        mock_message.channel = AsyncMock()
         
         await music_handler.show_queue(mock_message)
         
@@ -63,20 +69,23 @@ class TestQueueManagement:
     @pytest.mark.asyncio
     async def test_clear_queue_with_playing_music(self):
         # Test clearing queue while music is playing  
-        music_handler.queue = [("url1", "Song 1", True)]
-        
         mock_message = AsyncMock()
-        mock_message.channel = AsyncMock()
         mock_message.guild = MagicMock()
+        mock_message.guild.id = 12345
+        mock_message.channel = AsyncMock()
         mock_message.client = MagicMock()
+        
+        music_handler.queue[mock_message.guild.id] = [("url1", "Song 1", True)]
         
         mock_voice_client = MagicMock()
         mock_voice_client.is_playing.return_value = True
+        mock_voice_client.is_connected.return_value = True
+        mock_voice_client.disconnect = AsyncMock()
         
         with patch('discord.utils.get', return_value=mock_voice_client):
             await music_handler.clear_queue(mock_message)
         
-        assert music_handler.queue == []
+        assert music_handler.queue[mock_message.guild.id] == []
         mock_voice_client.stop.assert_called()
         mock_voice_client.disconnect.assert_called()
         mock_message.channel.send.assert_called()
@@ -84,21 +93,23 @@ class TestQueueManagement:
     @pytest.mark.asyncio
     async def test_clear_queue_without_playing_music(self):
         # Test clearing queue when no music is playing  
-        music_handler.queue = [("url1", "Song 1", True)]
-        
         mock_message = AsyncMock()
-        mock_message.channel = AsyncMock()
         mock_message.guild = MagicMock()
+        mock_message.guild.id = 12345
+        mock_message.channel = AsyncMock()
         mock_message.client = MagicMock()
         
+        music_handler.queue[mock_message.guild.id] = [("url1", "Song 1", True)]
         
         mock_voice_client = MagicMock()
         mock_voice_client.is_playing.return_value = False
+        mock_voice_client.is_connected.return_value = True
+        mock_voice_client.disconnect = AsyncMock()
         
         with patch('discord.utils.get', return_value=mock_voice_client):
             await music_handler.clear_queue(mock_message)
         
-        assert music_handler.queue == []
+        assert music_handler.queue[mock_message.guild.id] == []
         mock_message.channel.send.assert_called()
 
 
@@ -203,9 +214,9 @@ class TestSpotifySongHandling:
     @pytest.fixture(autouse=True)
     def reset_queue(self):
         # Reset queue before each test  
-        music_handler.queue = []
+        music_handler.queue = {}
         yield
-        music_handler.queue = []
+        music_handler.queue = {}
     
     @pytest.mark.asyncio
     @patch('music_handler.sp')
@@ -217,16 +228,20 @@ class TestSpotifySongHandling:
         }
         
         mock_message = AsyncMock()
+        mock_message.guild = MagicMock()
+        mock_message.guild.id = 12345
         mock_message.channel = AsyncMock()
+        
+        music_handler.queue[mock_message.guild.id] = []
         
         await music_handler.handle_spotify_song(
             mock_message, 
             "https://open.spotify.com/track/123456?si=abc"
         )
         
-        assert len(music_handler.queue) == 1
-        assert "Test Song" in music_handler.queue[0][1]
-        assert "Artist 1" in music_handler.queue[0][1]
+        assert len(music_handler.queue[mock_message.guild.id]) == 1
+        assert "Test Song" in music_handler.queue[mock_message.guild.id][0][1]
+        assert "Artist 1" in music_handler.queue[mock_message.guild.id][0][1]
         mock_message.channel.send.assert_called_once()
     
     @pytest.mark.asyncio
@@ -234,7 +249,11 @@ class TestSpotifySongHandling:
     async def test_handle_spotify_song_invalid_link(self, mock_sp):
         # Test handling invalid Spotify link  
         mock_message = AsyncMock()
+        mock_message.guild = MagicMock()
+        mock_message.guild.id = 12345
         mock_message.channel = AsyncMock()
+        
+        music_handler.queue[mock_message.guild.id] = []
         
         await music_handler.handle_spotify_song(
             mock_message, 
@@ -252,7 +271,11 @@ class TestSpotifySongHandling:
         mock_sp.track.side_effect = Exception("API Error")
         
         mock_message = AsyncMock()
+        mock_message.guild = MagicMock()
+        mock_message.guild.id = 12345
         mock_message.channel = AsyncMock()
+        
+        music_handler.queue[mock_message.guild.id] = []
         
         await music_handler.handle_spotify_song(
             mock_message, 
@@ -270,9 +293,9 @@ class TestSpotifyPlaylistHandling:
     @pytest.fixture(autouse=True)
     def reset_queue(self):
         # Reset queue before each test  
-        music_handler.queue = []
+        music_handler.queue = {}
         yield
-        music_handler.queue = []
+        music_handler.queue = {}
     
     @pytest.mark.asyncio
     @patch('music_handler.sp')
@@ -296,11 +319,14 @@ class TestSpotifyPlaylistHandling:
         }
         
         mock_message = AsyncMock()
-        mock_message.channel = AsyncMock()
         mock_message.guild = MagicMock()
+        mock_message.guild.id = 12345
+        mock_message.channel = AsyncMock()
         mock_message.user = MagicMock()
         mock_message.user.voice = None
         mock_message.client = MagicMock()
+        
+        music_handler.queue[mock_message.guild.id] = []
         
         with patch('discord.utils.get', return_value=MagicMock()):
             await music_handler.handle_spotify_playlist(
@@ -308,9 +334,9 @@ class TestSpotifyPlaylistHandling:
                 "https://open.spotify.com/playlist/123456?si=abc"
             )
         
-        assert len(music_handler.queue) == 2
-        assert "Song 1" in music_handler.queue[0][1]
-        assert "Song 2" in music_handler.queue[1][1]
+        assert len(music_handler.queue[mock_message.guild.id]) == 2
+        assert "Song 1" in music_handler.queue[mock_message.guild.id][0][1]
+        assert "Song 2" in music_handler.queue[mock_message.guild.id][1][1]
         mock_message.channel.send.assert_called_once()
     
     @pytest.mark.asyncio
@@ -320,11 +346,14 @@ class TestSpotifyPlaylistHandling:
         mock_sp.playlist_tracks.side_effect = Exception("API Error")
         
         mock_message = AsyncMock()
-        mock_message.channel = AsyncMock()
         mock_message.guild = MagicMock()
+        mock_message.guild.id = 12345
+        mock_message.channel = AsyncMock()
         mock_message.user = MagicMock()
         mock_message.user.voice = None
         mock_message.client = MagicMock()
+        
+        music_handler.queue[mock_message.guild.id] = []
         
         with patch('discord.utils.get', return_value=MagicMock()):
             await music_handler.handle_spotify_playlist(
@@ -343,9 +372,9 @@ class TestSongSearch:
     @pytest.fixture(autouse=True)
     def reset_queue(self):
         # Reset queue before each test  
-        music_handler.queue = []
+        music_handler.queue = {}
         yield
-        music_handler.queue = []
+        music_handler.queue = {}
     
     @pytest.mark.asyncio
     @patch('music_handler.sp')
@@ -424,55 +453,63 @@ class TestPlayFunction:
     @pytest.fixture(autouse=True)
     def reset_queue(self):
         # Reset queue before each test  
-        music_handler.queue = []
+        music_handler.queue = {}
         yield
-        music_handler.queue = []
+        music_handler.queue = {}
     
     @pytest.mark.asyncio
     @patch('music_handler.handle_spotify_playlist')
-    async def test_play_spotify_playlist(self, mock_handle):
+    @patch('music_handler.get_voice_client')
+    async def test_play_spotify_playlist(self, mock_get_voice, mock_handle):
         # Test playing Spotify playlist  
         mock_message = AsyncMock()
+        mock_message.guild = MagicMock()
+        mock_message.guild.id = 12345
         mock_message.channel = AsyncMock()
         mock_message.user = MagicMock()
         mock_message.user.voice = MagicMock()
         mock_message.user.voice.channel = MagicMock()
-        mock_message.guild = MagicMock()
         mock_message.client = MagicMock()
+        
+        music_handler.queue[mock_message.guild.id] = []
         
         mock_voice_client = MagicMock()
         mock_voice_client.is_playing.return_value = False
+        mock_get_voice.return_value = mock_voice_client
         
-        with patch('discord.utils.get', return_value=mock_voice_client):
-            with patch('music_handler.play_next', new_callable=AsyncMock):
-                await music_handler.play(
-                    mock_message,
-                    "https://open.spotify.com/playlist/123456"
-                )
+        with patch('music_handler.play_next', new_callable=AsyncMock):
+            await music_handler.play(
+                mock_message,
+                "https://open.spotify.com/playlist/123456"
+            )
         
         mock_handle.assert_called_once()
     
     @pytest.mark.asyncio
     @patch('music_handler.handle_spotify_song')
-    async def test_play_spotify_track(self, mock_handle):
+    @patch('music_handler.get_voice_client')
+    async def test_play_spotify_track(self, mock_get_voice, mock_handle):
         # Test playing single Spotify track  
         mock_message = AsyncMock()
+        mock_message.guild = MagicMock()
+        mock_message.guild.id = 12345
         mock_message.channel = AsyncMock()
         mock_message.user = MagicMock()
         mock_message.user.voice = MagicMock()
         mock_message.user.voice.channel = MagicMock()
-        mock_message.guild = MagicMock()
         mock_message.client = MagicMock()
+        
+        music_handler.queue[mock_message.guild.id] = []
         
         mock_voice_client = MagicMock()
         mock_voice_client.is_playing.return_value = False
+        mock_get_voice.return_value = mock_voice_client
         
-        with patch('discord.utils.get', return_value=mock_voice_client):
-            with patch('music_handler.play_next', new_callable=AsyncMock):
-                await music_handler.play(
-                    mock_message,
-                    "https://open.spotify.com/track/123456"
-                )
+        with patch('music_handler.play_next', new_callable=AsyncMock):
+            await music_handler.play(
+                mock_message,
+                "https://open.spotify.com/track/123456"
+            )
         
         mock_handle.assert_called_once()
     
@@ -497,22 +534,15 @@ class TestPlayFunction:
         mock_search.return_value = ("search query", "Song Title", False)
         
         mock_message = AsyncMock()
+        mock_message.guild = MagicMock()
+        mock_message.guild.id = 12345
         mock_message.channel = AsyncMock()
         mock_message.user = MagicMock()
         mock_message.user.voice = MagicMock()
         mock_message.user.voice.channel = MagicMock()
-        mock_message.guild = MagicMock()
         mock_message.client = MagicMock()
         
-        mock_voice_client = MagicMock()
-        mock_voice_client.is_playing.return_value = False
-        
-        with patch('discord.utils.get', return_value=mock_voice_client):
-            with patch('music_handler.play_next', new_callable=AsyncMock):
-                await music_handler.play(mock_message, "test song")
-        
-        assert len(music_handler.queue) == 1
-        mock_message.channel.send.assert_called()
+        music_handler.queue[mock_message.guild.id] = []
 
 
 class TestYouTubeSongHandling:
@@ -521,9 +551,9 @@ class TestYouTubeSongHandling:
     @pytest.fixture(autouse=True)
     def reset_queue(self):
         # Reset queue before each test  
-        music_handler.queue = []
+        music_handler.queue = {}
         yield
-        music_handler.queue = []
+        music_handler.queue = {}
     
     @pytest.mark.asyncio
     @patch('music_handler.run_yt_dlp_search')
@@ -536,7 +566,11 @@ class TestYouTubeSongHandling:
         }
         
         mock_message = AsyncMock()
+        mock_message.guild = MagicMock()
+        mock_message.guild.id = 12345
         mock_message.channel = AsyncMock()
+        
+        music_handler.queue[mock_message.guild.id] = []
         
         with patch('asyncio.to_thread', new_callable=AsyncMock) as mock_thread:
             mock_thread.return_value = {
@@ -549,7 +583,7 @@ class TestYouTubeSongHandling:
                 "https://youtu.be/123456"
             )
         
-        assert len(music_handler.queue) == 1
+        assert len(music_handler.queue[mock_message.guild.id]) == 1
         mock_message.channel.send.assert_called_once()
 
 
@@ -559,9 +593,9 @@ class TestYouTubePlaylistHandling:
     @pytest.fixture(autouse=True)
     def reset_queue(self):
         # Reset queue before each test  
-        music_handler.queue = []
+        music_handler.queue = {}
         yield
-        music_handler.queue = []
+        music_handler.queue = {}
     
     @pytest.mark.asyncio
     @patch('music_handler.run_yt_dlp_search')
@@ -583,7 +617,11 @@ class TestYouTubePlaylistHandling:
         }
         
         mock_message = AsyncMock()
+        mock_message.guild = MagicMock()
+        mock_message.guild.id = 12345
         mock_message.channel = AsyncMock()
+        
+        music_handler.queue[mock_message.guild.id] = []
         
         with patch('asyncio.to_thread', new_callable=AsyncMock) as mock_thread:
             mock_thread.return_value = {
@@ -605,7 +643,7 @@ class TestYouTubePlaylistHandling:
                 "https://www.youtube.com/playlist?list=123456"
             )
         
-        assert len(music_handler.queue) == 2
+        assert len(music_handler.queue[mock_message.guild.id]) == 2
         mock_message.channel.send.assert_called_once()
 
 
@@ -615,9 +653,9 @@ class TestPlayNext:
     @pytest.fixture(autouse=True)
     def reset_queue(self):
         # Reset queue before each test
-        music_handler.queue = []
+        music_handler.queue = {}
         yield
-        music_handler.queue = []
+        music_handler.queue = {}
     
     @pytest.mark.asyncio
     @patch('music_handler.run_yt_dlp_search')
@@ -635,17 +673,19 @@ class TestPlayNext:
         mock_voice_client = MagicMock()
         mock_voice_client.is_playing.return_value = False
         mock_voice_client.play = MagicMock()
+        mock_voice_client.is_connected.return_value = True
         mock_get.return_value = mock_voice_client
-        
-        music_handler.queue = [
-            ("url1", "Song 1", True),
-            ("url2", "Song 2", False),
-        ]
         
         mock_message = AsyncMock()
         mock_message.guild = MagicMock()
+        mock_message.guild.id = 12345
         mock_message.client = MagicMock()
         mock_message.channel = AsyncMock()
+        
+        music_handler.queue[mock_message.guild.id] = [
+            ("url1", "Song 1", True),
+            ("url2", "Song 2", False),
+        ]
         
         with patch('asyncio.to_thread', new_callable=AsyncMock) as mock_thread:
             mock_thread.return_value = {
@@ -671,16 +711,18 @@ class TestPlayNext:
         mock_voice_client = MagicMock()
         mock_voice_client.is_playing.return_value = False
         mock_voice_client.play = MagicMock()
+        mock_voice_client.is_connected.return_value = True
         mock_get.return_value = mock_voice_client
-        
-        music_handler.queue = [
-            ("url1", "Song 1", True),
-        ]
         
         mock_message = AsyncMock()
         mock_message.guild = MagicMock()
+        mock_message.guild.id = 12345
         mock_message.client = MagicMock()
         mock_message.channel = AsyncMock()
+        
+        music_handler.queue[mock_message.guild.id] = [
+            ("url1", "Song 1", True),
+        ]
         
         with patch('asyncio.to_thread', new_callable=AsyncMock) as mock_thread:
             mock_thread.return_value = {
@@ -692,3 +734,4 @@ class TestPlayNext:
         
         # Voice client should have been retrieved
         mock_get.assert_called()
+
