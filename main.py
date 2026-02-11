@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 import mcserver_handler
 import music_handler
 import mtg_handler
-import stock_data
+import stock_handler
 
 load_dotenv()
 TOKEN = os.getenv("DISCORD_TOKEN")
@@ -251,7 +251,7 @@ async def mcip(message: discord.Interaction):
 async def apistatus(message: discord.Interaction):
     """Display current Finnhub API usage statistics."""
     try:
-        usage = stock_data.get_api_usage()
+        usage = stock_handler.get_api_usage()
         
         embed = discord.Embed(
             title="📊 Finnhub API Status",
@@ -304,7 +304,7 @@ async def stock(message: discord.Interaction, ticker: str):
     """Fetch real-time stock information from Finnhub API."""
     try:
         await message.response.defer()
-        stock_info = stock_data.get_stock(ticker.upper())
+        stock_info = stock_handler.get_stock(ticker.upper())
         
         if not stock_info:
             await message.followup.send(f"❌ Unable to find stock data for **{ticker.upper()}**. Please check the ticker symbol.")
@@ -338,7 +338,7 @@ async def stock(message: discord.Interaction, ticker: str):
         embed.add_field(name="⚠️ Data Accuracy", value="Stock data may be delayed by up to 15 minutes. Always verify with official sources before making investment decisions.", inline=False)
         
         # Add API usage counter
-        usage = stock_data.get_api_usage()
+        usage = stock_handler.get_api_usage()
         embed.set_footer(text=f"API Calls: {usage['calls_this_minute']}/{usage['limit']} this minute | Total: {usage['total_calls']}")
         
         await message.followup.send(embed=embed)
@@ -353,7 +353,7 @@ async def stocksearch(message: discord.Interaction, query: str):
     """Search for stocks by company name or ticker."""
     try:
         await message.response.defer()
-        results = stock_data.search_stocks(query)
+        results = stock_handler.search_stocks(query)
         
         if not results:
             await message.followup.send(f"❌ No results found for **{query}**.")
@@ -372,7 +372,7 @@ async def stocksearch(message: discord.Interaction, query: str):
             embed.add_field(name=f"📌 {ticker}", value=name, inline=False)
         
         # Add API usage counter
-        usage = stock_data.get_api_usage()
+        usage = stock_handler.get_api_usage()
         embed.set_footer(text=f"Showing {min(len(results), 25)} of {len(results)} results | API Calls: {usage['calls_this_minute']}/{usage['limit']} this minute | Total: {usage['total_calls']}")
         await message.followup.send(embed=embed)
         
@@ -407,9 +407,17 @@ queue - Provides a list of songs in queue
 pause - Pauses the current song
 resume - Resumes the current paused song
 stop - Stops the current and clears the queue
+========================
+***Stock Market Data***
+stock - Get current stock price and information by ticker symbol
+stocksearch - Search for stocks by company name
+apistatus - Check current API usage and rate limit status
+========================
+***TCG (Trading Card Games)***
+mtg - Search for Magic: The Gathering card information
 """)
     except Exception as e:
-        print(e)
+        print(f"Help command error: {e}")
         await message.channel.send("⚠️ An error has occurred.")
 
 client.run(TOKEN)
