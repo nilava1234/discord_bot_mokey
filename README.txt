@@ -14,3 +14,6 @@ Using Scryfall API quiries cards, card prices, and legality within the game and 
 
 - Server management (mcserver_handler.py):
 Handles server initialization and termination using cmd prompts, using a primitive lock system to handle potential runtime issues.
+
+- Stock Data (stock_data.py):
+Fetches real-time stock information using the Finnhub API. Users can get stock quotes, company information, and detailed market data with built-in rate limiting and caching.
