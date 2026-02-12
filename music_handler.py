@@ -109,7 +109,7 @@ async def handle_single_song(message, query):
 async def play_next(message: discord.Interaction):
     global queue
     global embed_ctx
-    embed = embed_ctx[message.guild.id]
+    embed, ctx = embed_ctx[message.guild.id]
 
     voice_client = discord.utils.get(message.client.voice_clients, guild=message.guild)
 
@@ -118,7 +118,7 @@ async def play_next(message: discord.Interaction):
 
     if not queue[message.guild.id]:
         await message.channel.send("🎵 The queue is empty.")
-        await message.edit_original_response(embed=None)
+        await ctx.edit_original_response(embed=None)
         await voice_client.disconnect()
         return
 
@@ -140,7 +140,7 @@ async def play_next(message: discord.Interaction):
 
     embed.set_field_at(0, name="Song", value=title, inline=False)
     embed.set_image(url=thumbnail)
-    await message.edit_original_response(embed=embed)
+    await ctx.edit_original_response(embed=embed)
 
     def after_play(error):
         if error:
@@ -244,7 +244,7 @@ async def handle_song_search(message: discord.Interaction, query: str):
 async def handle_spotify_song(message, link):
     global queue
     global embed_ctx
-    embed = embed_ctx[message.guild.id]
+    embed, ctx = embed_ctx[message.guild.id]
     try:
         track_id = link.split("/track/")[1].split("?")[0]
         track_info = sp.track(track_id)
@@ -260,14 +260,14 @@ async def handle_spotify_song(message, link):
 
     queue[message.guild.id].append((search_query, title, False))
     embed.set_field_at(1, name="Queued: ", value=f"✅ {title}", inline=True)
-    await message.edit_original_response(embed=embed)
+    await ctx.edit_original_response(embed=embed)
 
 
 #METHOD SPOTIFY_PLAYLIST    ======Helpers======         ===============================================
 async def handle_spotify_playlist(message: discord.Interaction, link: str):  
     global queue
     global embed_ctx
-    embed = embed_ctx[message.guild.id]
+    embed, ctx = embed_ctx[message.guild.id]
     try:
         playlist_id = link.split("/playlist/")[1].split("?")[0]
         playlist_tracks = sp.playlist_tracks(playlist_id)
@@ -289,14 +289,14 @@ async def handle_spotify_playlist(message: discord.Interaction, link: str):
 
         queue[message.guild.id].append((search_query, title, False))
     embed.set_field_at(1, name="Queued: ", value=f"📃 Queued {queued_songs} songs", inline=True)
-    await message.edit_original_response(embed=embed)
+    await ctx.edit_original_response(embed=embed)
 
 #METHOD YOUTUBE_PLAYLIST    ======Helpers======         ===============================================   
 async def handle_youtube_playlist(message: discord.Interaction, playlist_link: str):
     global queue
     global ydl_opts
     global embed_ctx
-    embed = embed_ctx[message.guild.id]
+    embed, ctx = embed_ctx[message.guild.id]
     with youtube_dl.YoutubeDL(ydl_opts) as ydl:
         playlist_info = await asyncio.to_thread(run_yt_dlp_search, playlist_link)
 
@@ -310,7 +310,7 @@ async def handle_youtube_playlist(message: discord.Interaction, playlist_link: s
                 queue[message.guild.id].append((url,  f"{title} by {author}", True, thumbnail))
 
         embed.set_field_at(1, name="Queued: ", value=f"📃 Queued {len(playlist_info['entries'])} songs", inline=True)
-        await message.edit_original_response(embed=embed)
+        await ctx.edit_original_response(embed=embed)
 
 
 
@@ -319,7 +319,7 @@ async def handle_youtube_song(message: discord.Interaction, song_link: str):
     global queue
     global ydl_opts
     global embed_ctx
-    embed = embed_ctx[message.guild.id]
+    embed, ctx = embed_ctx[message.guild.id]
     try:
         with youtube_dl.YoutubeDL(ydl_opts) as ydl:
             video_info = await asyncio.to_thread(run_yt_dlp_search, song_link)
@@ -331,7 +331,7 @@ async def handle_youtube_song(message: discord.Interaction, song_link: str):
             if url:
                 queue[message.guild.id].append((url,  f"{title} by {author}", True, thumbnail))
                 embed.set_field_at(1, name="Queued: ", value=f"✅ {title} by {author}", inline=True)
-                await message.edit_original_response(embed=embed)
+                await ctx.edit_original_response(embed=embed)
             else: 
                 await message.channel.send("⚠️Failed to retrieve a valid URL for the song.")
     except Exception as e:
@@ -348,7 +348,7 @@ async def play(message: discord.Interaction, link: str):
         embed = discord.Embed(title="🎵 Mokey Music 🎵", color=discord.Color.blue())
         embed.add_field(name="Song", value="None", inline=False)
         embed.add_field(name="Queued: ", value="None", inline=True)
-        embed_ctx[message.guild.id] = embed
+        embed_ctx[message.guild.id] = embed, message
         await message.edit_original_response(content="", embed=embed)
 
     voice_client = await get_voice_client(message)
@@ -373,9 +373,9 @@ async def play(message: discord.Interaction, link: str):
         if search_result:
             video_url, title, is_url = search_result
             queue[message.guild.id].append((video_url, title, is_url))
-            embed = embed_ctx[message.guild.id]
+            embed, ctx = embed_ctx[message.guild.id]
             embed.set_field_at(1, name="Queued: ", value=f"✅ {title}", inline=True)
-            await message.edit_original_response(embed=embed)
+            await ctx.edit_original_response(embed=embed)
             
 
     # Only start playing if not already playing
