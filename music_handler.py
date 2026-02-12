@@ -118,6 +118,7 @@ async def play_next(message: discord.Interaction):
 
     if not queue[message.guild.id]:
         await message.channel.send("🎵 The queue is empty.")
+        await message.edit_original_response(embed=None)
         await voice_client.disconnect()
         return
 
