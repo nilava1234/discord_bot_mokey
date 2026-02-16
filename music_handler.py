@@ -55,7 +55,6 @@ async def shuffle_queue(message: discord.Interaction):
 
     random.shuffle(queue[message.guild.id])
     await message.channel.send("🔀 Queue shuffled.")
-    
 async def get_voice_client(interaction: discord.Interaction):
     """Safely gets or connects the bot to the user's voice channel."""
     

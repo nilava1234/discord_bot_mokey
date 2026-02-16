@@ -49,6 +49,25 @@ booting = 0     # Flag to track if server is currently booting
 # ============================================================================
 # SERVER MANAGEMENT FUNCTIONS
 # ============================================================================
+async def wait_for_server_ready(process):
+    ready_keywords = [
+        "[minecraft/DedicatedServer]: Done",  # vanilla/paper
+        "For help, type",  # common fallback
+    ]
+
+    loop = asyncio.get_event_loop()
+
+    while True:
+        # Read line without blocking the event loop
+        line = await loop.run_in_executor(None, process.stdout.readline)
+
+        if not line:
+            # Process ended/crashed
+            return False
+
+        # Check for ready message
+        if any(keyword in line for keyword in ready_keywords):
+            return True
 
 async def run_server(version: str) -> bool:
     """
@@ -90,10 +109,10 @@ async def run_server(version: str) -> bool:
         process_id = process.pid
 
         # Wait for server to boot up
-        await asyncio.sleep(boot_time)
+        is_ready = await wait_for_server_ready(process)
 
         booting = 0
-        return True
+        return is_ready
 
     except subprocess.CalledProcessError as e:
         print(f"Error starting server: {e}")
