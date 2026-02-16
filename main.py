@@ -108,7 +108,7 @@ async def shuffle(message):
         print(e)
         await message.channel.send("⚠️ An error has occurred.")
 
-@commands.command(name="skip", description="Skip Current Song")
+@commands.command(name="next", description="Skip Current Song")
 async def next(message):
     """Skip the currently playing song and play the next one in queue."""
     try:
@@ -137,6 +137,16 @@ async def pause(message):
     try:
         await message.response.send_message("Paused ⏸︎")
         await music_handler.pause(message)
+    except Exception as e:
+        print(e)
+        await message.channel.send("⚠️ An error has occurred.")
+
+@commands.command(name="resume", description="Resume Current Song")
+async def resume(message):
+    """Resume the currently paused song."""
+    try:
+        await message.response.send_message("Resumed ▶️")
+        await music_handler.resume(message)
     except Exception as e:
         print(e)
         await message.channel.send("⚠️ An error has occurred.")
@@ -404,7 +414,8 @@ Here are a list of commands:
 ***General:***
 help - List all commands
 ========================
-***Minecraft Server Related Commands (1.20.4)***
+***Minecraft Server***
+Raspberry Flavored (rf), All the Mods 10 (atm10), Deceased Craft (dc)
 mcstart - Starts the Minecraft Bedrock Server
 mcstop - Stops the Minecraft Server
 mcstatus - Provides the status of the server
