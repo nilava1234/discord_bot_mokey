@@ -98,6 +98,15 @@ async def leave(ctx):
 # ============================================================================
 # MUSIC COMMANDS
 # ============================================================================
+@commands.command(name="shuffle", description="Shuffle the current queue")
+async def shuffle(message):
+    """Shuffle the current music queue."""
+    try:
+        await music_handler.shuffle_queue(message)
+        await message.response.send_message("🔀 Queue shuffled.")
+    except Exception as e:
+        print(e)
+        await message.channel.send("⚠️ An error has occurred.")
 
 @commands.command(name="skip", description="Skip Current Song")
 async def next(message):

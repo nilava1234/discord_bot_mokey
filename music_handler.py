@@ -5,6 +5,7 @@ from spotipy.oauth2 import SpotifyClientCredentials
 import spotipy
 import asyncio
 import yt_dlp as youtube_dl;
+import random
 
 
 #Initilizng and grabing important variables
@@ -45,7 +46,16 @@ ydl_opts = {
     'skip_download': True,  # Ensures yt-dlp only fetches URLs, without downloading files
 }
 
+async def shuffle_queue(message: discord.Interaction):
+    """Shuffles the current music queue for the guild."""
+    global queue
+    if message.guild.id not in queue or not queue[message.guild.id]:
+        await message.channel.send("🎵 The queue is currently empty. Nothing to shuffle.")
+        return
 
+    random.shuffle(queue[message.guild.id])
+    await message.channel.send("🔀 Queue shuffled.")
+    
 async def get_voice_client(interaction: discord.Interaction):
     """Safely gets or connects the bot to the user's voice channel."""
     
@@ -237,7 +247,7 @@ async def handle_song_search(message: discord.Interaction, query: str):
     track_artist = ", ".join(artist["name"] for artist in track_info["artists"])  
     search_query = f"{track_name} {track_artist} Audio"
 
-    return search_query, f"{track_name} by {track_artist}", False  # ✅ Fix: Properly return search results
+    return search_query, f"{track_name} - {track_artist}", False  # ✅ Fix: Properly return search results
 
 
 #METHOD SPOTIFY_SONG    ======Helpers======         ===============================================
@@ -256,7 +266,7 @@ async def handle_spotify_song(message, link):
     track_name = track_info["name"]
     artists = ", ".join([artist["name"] for artist in track_info["artists"]])
     search_query = f"{track_name} {artists} Audio"
-    title = f"{track_name} by {artists}"
+    title = f"{track_name} - {artists}"
 
     queue[message.guild.id].append((search_query, title, False))
     embed.set_field_at(1, name="Queued: ", value=f"✅ {title}", inline=True)
@@ -284,7 +294,7 @@ async def handle_spotify_playlist(message: discord.Interaction, link: str):
             continue
 
         search_query = f"{track['name']} {', '.join([artist['name'] for artist in track['artists']])} Audio"
-        title = f"{track['name']} by {', '.join([artist['name'] for artist in track['artists']])}"
+        title = f"{track['name']} - {', '.join([artist['name'] for artist in track['artists']])}"
         queued_songs+=1
 
         queue[message.guild.id].append((search_query, title, False))
@@ -307,7 +317,7 @@ async def handle_youtube_playlist(message: discord.Interaction, playlist_link: s
             thumbnail = video['thumbnail']
 
             if url:
-                queue[message.guild.id].append((url,  f"{title} by {author}", True, thumbnail))
+                queue[message.guild.id].append((url,  f"{title} - {author}", True, thumbnail))
 
         embed.set_field_at(1, name="Queued: ", value=f"📃 Queued {len(playlist_info['entries'])} songs", inline=True)
         await ctx.edit_original_response(embed=embed)
@@ -329,8 +339,8 @@ async def handle_youtube_song(message: discord.Interaction, song_link: str):
             thumbnail = video_info['thumbnail']
 
             if url:
-                queue[message.guild.id].append((url,  f"{title} by {author}", True, thumbnail))
-                embed.set_field_at(1, name="Queued: ", value=f"✅ {title} by {author}", inline=True)
+                queue[message.guild.id].append((url,  f"{title} - {author}", True, thumbnail))
+                embed.set_field_at(1, name="Queued: ", value=f"✅ {title} - {author}", inline=True)
                 await ctx.edit_original_response(embed=embed)
             else: 
                 await message.channel.send("⚠️Failed to retrieve a valid URL for the song.")
@@ -348,6 +358,10 @@ async def play(message: discord.Interaction, link: str):
         embed = discord.Embed(title="🎵 Mokey Music 🎵", color=discord.Color.blue())
         embed.add_field(name="Song", value="None", inline=False)
         embed.add_field(name="Queued: ", value="None", inline=True)
+        embed_ctx[message.guild.id] = embed, message
+        await message.edit_original_response(content="", embed=embed)
+    else:
+        embed, ctx = embed_ctx[message.guild.id]
         embed_ctx[message.guild.id] = embed, message
         await message.edit_original_response(content="", embed=embed)
 
