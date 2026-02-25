@@ -190,10 +190,10 @@ async def mcreboot(message):
         await message.response.send_message("Sorry, you don't have permission to use this command.")
 
 VERSIONS = {
-    "rf": "Raspberry Flavored v3.2.1 \n(A Vanilla+ Mod-pack)",
-    "atm10": "All the Mods 10 \n\"Surpass the frailty of man with magic and machine!\"",
-    "sf4" : "Skyfactory 4 \n\"Rags to riches to apotheosis with the perseverance of man the only reason you continue.\"",
-    "ll" : "Lingo Gango \n\"Do not let your imagination be your only place of adventure\""
+    "rf": "Raspberry Flavored v3.2.1",
+    "atm10": "All the Mods 10 v5.1",
+    "sf5" : "Skyfactory 5 v5.0.8",
+    "ll" : "Lingo Gango v6.43.4"
 }
 
 async def version_autocomplete(interaction: discord.Interaction, current: str):
@@ -203,7 +203,7 @@ async def version_autocomplete(interaction: discord.Interaction, current: str):
         if current.lower() in version.lower():
             choices.append(
                 app_commands.Choice(
-                    name=f"{version} — {desc}",
+                    name=f"{version}: {desc}",
                     value=version 
                 )
             )
@@ -213,7 +213,7 @@ async def version_autocomplete(interaction: discord.Interaction, current: str):
 @commands.command(name="mcstart", description="Starts the a MC Server")
 @app_commands.describe(version="Choose the Version of Minecraft you want to start")
 @app_commands.autocomplete(version=version_autocomplete)
-async def mcstart(message, version: str = "rf"):
+async def mcstart(message, version: str):
     """Start a Minecraft server. Versions: vanilla, atm10, dc, rf."""
     if message.guild.id in admin_server_ids:
         version = version.lower()

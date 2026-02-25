@@ -26,7 +26,7 @@ DEFAULT_PATH = os.path.abspath(os.getcwd())
 SERVER_PATHS = {
     "atm10": os.path.abspath(os.path.join(os.getcwd(), "atm10/run.sh")),
     "rf": os.path.abspath(os.path.join(os.getcwd(), "rf/run.sh")),
-    "sf4": os.path.abspath(os.path.join(os.getcwd(), "skyfactory4/run.sh")),
+    "sf5": os.path.abspath(os.path.join(os.getcwd(), "skyfactory5/run.sh")),
     "ll": os.path.abspath(os.path.join(os.getcwd(), "lingolango/run.sh"))
 }
 
@@ -34,7 +34,7 @@ SERVER_PATHS = {
 SERVER_BOOT_TIMES = {
     "atm10": 420,
     "rf": 300,
-    "sf4": 300,
+    "sf5": 300,
     "ll": 300
 }
 
