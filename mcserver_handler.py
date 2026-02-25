@@ -24,17 +24,14 @@ DEFAULT_PATH = os.path.abspath(os.getcwd())
 
 # Server start script paths - organized by server type
 SERVER_PATHS = {
-    "vanilla": os.path.abspath(os.path.join(os.getcwd(), "vanilla_minecraft/start.sh")),
     "atm10": os.path.abspath(os.path.join(os.getcwd(), "atm10/run.sh")),
-    "dc": os.path.abspath(os.path.join(os.getcwd(), "dc/run.sh")),
     "rf": os.path.abspath(os.path.join(os.getcwd(), "rf/run.sh")),
+    "sf4": os.path.abspath(os.path.join(os.getcwd(), "sf4/run.sh")),
 }
 
 # Server startup times (in seconds) - varies by modpack complexity
 SERVER_BOOT_TIMES = {
-    "vanilla": 80,      # Vanilla is fastest
-    "atm10": 420,       # All The Mods takes longer
-    "dc": 300,
+    "atm10": 420,
     "rf": 300,
 }
 
@@ -109,10 +106,10 @@ async def run_server(version: str) -> bool:
         process_id = process.pid
 
         # Wait for server to boot up
-        is_ready = await wait_for_server_ready(process)
+        await asyncio.sleep(boot_time)
 
         booting = 0
-        return is_ready
+        return True
 
     except subprocess.CalledProcessError as e:
         print(f"Error starting server: {e}")
