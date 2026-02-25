@@ -26,7 +26,8 @@ DEFAULT_PATH = os.path.abspath(os.getcwd())
 SERVER_PATHS = {
     "atm10": os.path.abspath(os.path.join(os.getcwd(), "atm10/run.sh")),
     "rf": os.path.abspath(os.path.join(os.getcwd(), "rf/run.sh")),
-    "sf4": os.path.abspath(os.path.join(os.getcwd(), "sf4/run.sh")),
+    "sf4": os.path.abspath(os.path.join(os.getcwd(), "skyfactory4/run.sh")),
+    "ll": os.path.abspath(os.path.join(os.getcwd(), "lingolango/run.sh"))
 }
 
 # Server startup times (in seconds) - varies by modpack complexity
